@@ -54,7 +54,7 @@ def getDiceScores():
 def main():
 
     scores = getDiceScores()
-    print("Average Dice score = {0:.2f}".format(np.mean(scores.values())))
+    print("Average Dice score = {0:.2f}".format(sum(scores.values()) / len(scores)))
 
 
 if __name__ == "__main__":
