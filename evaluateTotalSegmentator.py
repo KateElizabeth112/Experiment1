@@ -13,11 +13,10 @@ if SYSTEM == 'local':
     preds_dir = 'data/MSDPancreas/MSDPancreas/TotalSegmentator'
 else:
     root_dir = '/vol/biomedic3/kc2322/'
-    os.chdir(root_dir)
 
-    data_dir = 'data/MSDPancreas/MSDPancreas/ImagesTr'
-    labels_dir = 'data/MSDPancreas/MSDPancreas/LabelsTr'
-    preds_dir = 'data/MSDPancreas/MSDPancreas/TotalSegmentator'
+    data_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/ImagesTr')
+    labels_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/LabelsTr')
+    preds_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/TotalSegmentator')
 
 
 def getDiceScores():
