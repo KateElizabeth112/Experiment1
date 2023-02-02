@@ -2,7 +2,7 @@ import os
 import numpy as np
 import nibabel as nib
 
-SYTSTEM = 'local'
+SYSTEM = 'remote'
 
 if SYSTEM == 'local':
     root_dir = '/Users/katecevora/Documents/PhD'
