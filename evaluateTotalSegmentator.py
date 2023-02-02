@@ -2,12 +2,22 @@ import os
 import numpy as np
 import nibabel as nib
 
-root_dir = '/Users/katecevora/Documents/PhD'
-os.chdir(root_dir)
+SYTSTEM = 'local'
 
-data_dir = 'data/MSDPancreas/ImagesTr'
-labels_dir = 'data/MSDPancreas/LabelsTr'
-preds_dir = 'data/MSDPancreas/MSDPancreas/TotalSegmentator'
+if SYSTEM == 'local':
+    root_dir = '/Users/katecevora/Documents/PhD'
+    os.chdir(root_dir)
+
+    data_dir = 'data/MSDPancreas/ImagesTr'
+    labels_dir = 'data/MSDPancreas/LabelsTr'
+    preds_dir = 'data/MSDPancreas/MSDPancreas/TotalSegmentator'
+else:
+    root_dir = '/vol/biomedic3/kc2322/'
+    os.chdir(root_dir)
+
+    data_dir = 'data/MSDPancreas/MSDPancreas/ImagesTr'
+    labels_dir = 'data/MSDPancreas/MSDPancreas/LabelsTr'
+    preds_dir = 'data/MSDPancreas/MSDPancreas/TotalSegmentator'
 
 
 def getDiceScores():
