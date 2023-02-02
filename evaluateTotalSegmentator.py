@@ -14,8 +14,8 @@ if SYSTEM == 'local':
 else:
     root_dir = '/vol/biomedic3/kc2322/'
 
-    data_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/ImagesTr')
-    labels_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/LabelsTr')
+    data_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/imagesTr')
+    labels_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/labelsTr')
     preds_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/TotalSegmentator')
 
 
