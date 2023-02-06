@@ -23,38 +23,34 @@ else:
 
 def getDiceScores():
     # list the files in the training folder
-    files = os.listdir(data_dir)
+    files_list = os.listdir(data_dir)
     scores = {}
 
-    print(data_dir)
-    print(files)
+    for f in files_list:
+        if f.endswith(".gz"):
+            name = f.split(".")[0]
 
-    for f in files:
+            img = nib.load(os.path.join(data_dir, f))
+            gt = nib.load(os.path.join(labels_dir, f))
+            pred = nib.load(os.path.join(preds_dir, name, "pancreas.nii.gz"))
 
-        name = f.split(".")[0]
-        print(name)
+            header = img.header
+            vox_size = header.get_zooms()
+            img_raw = img.get_fdata()
+            lab_raw = pred.get_fdata()
+            gt_raw = gt.get_fdata()
 
-        img = nib.load(os.path.join(data_dir, f))
-        gt = nib.load(os.path.join(labels_dir, f))
-        pred = nib.load(os.path.join(preds_dir, name, "pancreas.nii.gz"))
+            # Calculate Dice score
+            gt_raw[gt_raw == 2] = 0
+            dice = np.sum(lab_raw[gt_raw == 1]) * 2.0 / (np.sum(lab_raw) + np.sum(gt_raw))
 
-        header = img.header
-        vox_size = header.get_zooms()
-        img_raw = img.get_fdata()
-        lab_raw = pred.get_fdata()
-        gt_raw = gt.get_fdata()
+            # Add Dice score to a dictionary
+            scores[name] = dice
 
-        # Calculate Dice score
-        gt_raw[gt_raw == 2] = 0
-        dice = np.sum(lab_raw[gt_raw == 1]) * 2.0 / (np.sum(lab_raw) + np.sum(gt_raw))
+            # Plot
+            plot3Dmesh(gt_raw, lab_raw, dice, save_path=os.path.join(images_dir, name + ".png"))
 
-        # Add Dice score to a dictionary
-        scores[name] = dice
-
-        # Plot
-        plot3Dmesh(gt_raw, lab_raw, dice, save_path=os.path.join(images_dir, name + ".png"))
-
-        return scores
+    return scores
 
 
 def main():
