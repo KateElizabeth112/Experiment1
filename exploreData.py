@@ -6,7 +6,7 @@ import nibabel as nib
 import time
 
 from registration import RigidRegistration
-from display import Display3D, DisplayRegistration2D, Display2D, DisplayOverlay2D
+from display import Display3D, DisplayRegistration2D, Display2D, DisplayOverlay2D, plot3Dmesh
 
 root_dir = '/Users/katecevora/Documents/PhD'
 os.chdir(root_dir)
@@ -61,7 +61,7 @@ def InspectTotalSegmentator():
     print(dice)
 
 
-def main():
+def RegisterImages():
     files = os.listdir(data_dir)
 
     reference_img_name = "pancreas_376.nii.gz"
@@ -89,6 +89,18 @@ def main():
             end_time = time.time()
 
             print(end_time - start_time)
+
+
+def main():
+    # open a label and display it as a 3D mesh
+    lab = nib.load("pancreas.nii.gz")
+    lab_raw = lab.get_fdata()
+
+    gt = nib.load(os.path.join(labels_dir, "pancreas_001.nii.gz"))
+    gt_raw = gt.get_fdata()
+    gt_raw[gt_raw > 1] = 1
+    plot3Dmesh(gt_raw, lab_raw, 0.6444, save_path="fig1.png")
+
 
 
 if __name__ == "__main__":

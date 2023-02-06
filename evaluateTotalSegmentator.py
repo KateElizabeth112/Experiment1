@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import nibabel as nib
+from display import plot3Dmesh
 
 SYSTEM = 'remote'
 
@@ -17,6 +18,7 @@ else:
     data_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/imagesTr')
     labels_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/labelsTr')
     preds_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/TotalSegmentator')
+    images_dir = os.path.join(root_dir, 'images/TotalSegmentator/3D')
 
 
 def getDiceScores():
@@ -38,15 +40,15 @@ def getDiceScores():
             lab_raw = pred.get_fdata()
             gt_raw = gt.get_fdata()
 
-            #DisplayOverlay2D(img_raw, lab_raw, vox_size, plane=2,
-            #                 save_path=os.path.join("images", "totalsegmentator.png"))
-
             # Calculate Dice score
             gt_raw[gt_raw == 2] = 0
             dice = np.sum(lab_raw[gt_raw == 1]) * 2.0 / (np.sum(lab_raw) + np.sum(gt_raw))
 
             # Add Dice score to a dictionary
             scores[name] = dice
+
+            # Plot
+            plot3Dmesh(gt_raw, lab_raw, dice, save_path=os.path.join(images_dir, name + ".png"))
 
             return scores
 
