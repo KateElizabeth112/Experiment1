@@ -29,6 +29,7 @@ def getDiceScores():
     for f in files:
         if f.endswith(".gz"):
             name = f.split(".")[0]
+            print(name)
 
             img = nib.load(os.path.join(data_dir, f))
             gt = nib.load(os.path.join(labels_dir, f))
