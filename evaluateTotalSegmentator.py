@@ -26,6 +26,9 @@ def getDiceScores():
     files = os.listdir(data_dir)
     scores = {}
 
+    print(data_dir)
+    print(files)
+
     for f in files:
         if f.endswith(".gz"):
             name = f.split(".")[0]
