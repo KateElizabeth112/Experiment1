@@ -18,7 +18,7 @@ for FILE in $IMG_DIR*
 	echo $b
 	
 	# Make a folder with the same name as the source file
-	WORK_DIR="${OUT_DIR}/${b}"
+	WORK_DIR="${OUT_DIR}${b}/"
 	mkdir $WORK_DIR
 	echo $WORK_DIR
 	
