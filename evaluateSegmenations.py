@@ -1,6 +1,6 @@
-import numpy as np
 import SimpleITK as sitk
 from display import DisplayRegistration2D
+import os
 
 # check MIRTK registrations by creating plots
 
