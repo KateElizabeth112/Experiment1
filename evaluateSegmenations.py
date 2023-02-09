@@ -22,7 +22,7 @@ def main():
 
             # load original and warped images
             source_img = sitk.ReadImage(os.path.join(data_dir, f), sitk.sitkFloat32)
-            warped_img = sitk.ReadImage(os.path.join(reg_dir, name, name+"warp.nii.gz"), sitk.sitkFloat32)
+            warped_img = sitk.ReadImage(os.path.join(reg_dir, name, name+"_warp.nii.gz"), sitk.sitkFloat32)
 
             vox_source = source_img.GetSpacing()
 
