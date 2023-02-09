@@ -20,6 +20,7 @@ for FILE in $IMG_DIR*
 	# Make a folder with the same name as the source file
 	WORK_DIR=$OUT_DIR$b
 	mkdir $WORK_DIR
+	echo $WORK_DIR
 	
 	# Perform rigid image registration
 	# target image (reference): pancrease_376.nii.gz
