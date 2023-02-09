@@ -1,0 +1,44 @@
+#!/bin/bash
+
+export PATH="/vol/biomedic2/wbai/git/MIRTK_bin/bin:$PATH"
+
+IMG_DIR=/vol/biomedic3/kc2322/data/MSDPancreas/MSDPancreas/imagesTr/
+LAB_DIR=/vol/biomedic3/kc2322/data/MSDPancreas/MSDPancreas/labelsTr/
+OUT_DIR=/vol/biomedic3/kc2322/data/MSDPancreas/MSDPancreas/imagesTrMIRTK/
+CONFIG_PATH=/vol/biomedic3/wbai/data/for_kate/rigid.cfg
+TARGET=pancreas_376.nii.gz
+
+
+for FILE in $IMG_DIR*
+	do 
+	
+	# Get the name of the file from the full path
+	SOURCE="${FILE#$IMG_DIR}"
+	b=${SOURCE:0:12}
+	echo $b
+	
+	# Make a folder with the same name as the source file
+	mkdir $OUT_DIR$b
+	
+	# Perform rigid image registration
+	# target image (reference): pancrease_376.nii.gz
+	# source image: iterate across dataset
+	# The source image will be registered to the target image space.
+	# The resulting transformation (dof file) describes the transformation from target to source.
+	TRANSFORM=rigid.dof.gz
+	mirtk register $IMG_DIR$TARGET $IMG_DIR$SOURCE -parin $CONFIG_PATH -dofout $OUT_DIR$TRANSFORM
+	
+	# Transform the source image to the target image space
+	# Note we pad value -1000 for voxels outside the source image field of view.
+	# By default, linear interpolation will be used.
+	IMG_WARP="${b}_warp.nii.gz"
+	mirtk transform-image $IMG_DIR$SOURCE $OUT_DIR$IMG_WARP -dofin $OUT_DIR$TRANSFORM -target $IMG_DIR$TARGET -Sp -1000
+	
+	# Transform the source label map to the target image space
+	# Nearest neighbour interpolation is used for label map.
+	LAB_WARP="${b}_label_warp.nii.gz"
+	mirtk transform-image $LAB_DIR$SOURCE $OUT_DIR$LAB_WARP -dofin $OUT_DIR$TRANSFORM -target $IMG_DIR$TARGET -interp NN
+	
+	
+	
+done
