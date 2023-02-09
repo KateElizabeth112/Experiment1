@@ -18,7 +18,8 @@ for FILE in $IMG_DIR*
 	echo $b
 	
 	# Make a folder with the same name as the source file
-	mkdir $OUT_DIR$b
+	WORK_DIR=$OUT_DIR$b
+	mkdir $WORK_DIR
 	
 	# Perform rigid image registration
 	# target image (reference): pancrease_376.nii.gz
@@ -26,19 +27,18 @@ for FILE in $IMG_DIR*
 	# The source image will be registered to the target image space.
 	# The resulting transformation (dof file) describes the transformation from target to source.
 	TRANSFORM=rigid.dof.gz
-	mirtk register $IMG_DIR$TARGET $IMG_DIR$SOURCE -parin $CONFIG_PATH -dofout $OUT_DIR$TRANSFORM
+	mirtk register $IMG_DIR$TARGET $IMG_DIR$SOURCE -parin $CONFIG_PATH -dofout $WORK_DIR$TRANSFORM
 	
 	# Transform the source image to the target image space
 	# Note we pad value -1000 for voxels outside the source image field of view.
 	# By default, linear interpolation will be used.
 	IMG_WARP="${b}_warp.nii.gz"
-	mirtk transform-image $IMG_DIR$SOURCE $OUT_DIR$IMG_WARP -dofin $OUT_DIR$TRANSFORM -target $IMG_DIR$TARGET -Sp -1000
+	mirtk transform-image $IMG_DIR$SOURCE $WORK_DIR$IMG_WARP -dofin $WORK_DIR$TRANSFORM -target $IMG_DIR$TARGET -Sp -1000
 	
 	# Transform the source label map to the target image space
 	# Nearest neighbour interpolation is used for label map.
 	LAB_WARP="${b}_label_warp.nii.gz"
-	mirtk transform-image $LAB_DIR$SOURCE $OUT_DIR$LAB_WARP -dofin $OUT_DIR$TRANSFORM -target $IMG_DIR$TARGET -interp NN
-	
+	mirtk transform-image $LAB_DIR$SOURCE $WORK_DIR$LAB_WARP -dofin $WORK_DIR$TRANSFORM -target $IMG_DIR$TARGET -interp NN
 	
 	
 done
