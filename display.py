@@ -170,20 +170,20 @@ def Display3D(image):
 
 
 # Display registration results (source, target, warped image) in two dimensions
-def DisplayRegistration2D(source, target, warped, vox_spacing, save_path=""):
+def DisplayRegistration2D(target, source, warped, vox_spacing, save_path=""):
     plt.figure(figsize=(10, 5))
 
     fontsize = 12
 
     plt.suptitle("(Target voxel size: {0:.2f}, {1:.2f}, {2:.2f})".format(vox_spacing[0], vox_spacing[1], vox_spacing[2]))
 
-    plt.subplot(131)
+    plt.subplot(132)
     plt.imshow(source[int(source.shape[0] / 2), ::-1, :], cmap='gray')
     plt.title('Source', fontsize=fontsize)
     plt.axis('equal')
     plt.axis('off')
 
-    plt.subplot(132)
+    plt.subplot(131)
     plt.imshow(target[int(target.shape[0] / 2), ::-1, :], cmap='gray')
     plt.title('Target', fontsize=fontsize)
     plt.axis('equal')
@@ -196,6 +196,23 @@ def DisplayRegistration2D(source, target, warped, vox_spacing, save_path=""):
     plt.axis('off')
 
     if save_path == "":
+        plt.show()
+    else:
+        plt.savefig(save_path)
+
+
+def PlotSliceAndOverlay(image_slice, labels_slice, save_path=""):
+    labels_slice[labels_slice > 1] = 1
+
+    alpha_array = np.zeros(labels_slice.shape)
+    alpha_array[labels_slice > 0] = 0.5
+
+    plt.imshow(image_slice, cmap='gray')
+    plt.imshow(labels_slice, cmap='jet', alpha=alpha_array, vmin=0, vmax=2)
+
+    plt.axis('off')
+
+    if save_path=="":
         plt.show()
     else:
         plt.savefig(save_path)

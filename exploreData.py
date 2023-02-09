@@ -5,8 +5,8 @@ import SimpleITK as sitk
 import nibabel as nib
 import time
 
-from registration import RigidRegistration
-from display import Display3D, DisplayRegistration2D, Display2D, DisplayOverlay2D, plot3Dmesh
+from registration import RigidRegistration2
+from display import Display3D, DisplayRegistration2D, Display2D, DisplayOverlay2D, PlotSliceAndOverlay
 
 root_dir = '/Users/katecevora/Documents/PhD'
 os.chdir(root_dir)
@@ -61,12 +61,8 @@ def InspectTotalSegmentator():
     print(dice)
 
 
-def RegisterImages():
+def RegisterImages(reference_img_name):
     files = os.listdir(data_dir)
-
-    reference_img_name = "pancreas_376.nii.gz"
-    #target_img_name = "pancreas_392.nii.gz"
-
     sitk_reference_img = sitk.ReadImage(os.path.join(data_dir, reference_img_name), sitk.sitkFloat32)
 
     for f in files:
@@ -76,31 +72,54 @@ def RegisterImages():
 
             start_time = time.time()
 
-            sitk_target_img = sitk.ReadImage(os.path.join(data_dir, f), sitk.sitkFloat32)
+            sitk_moving_img = sitk.ReadImage(os.path.join(data_dir, f), sitk.sitkFloat32)
 
-            sitk_warped_image = RigidRegistration(sitk_reference_img, sitk_target_img)
+            sitk_warped_image = RigidRegistration2(sitk_reference_img, sitk_moving_img)
 
-            vox_target = sitk_target_img.GetSpacing()
 
-            DisplayRegistration2D(sitk.GetArrayFromImage(sitk_reference_img), sitk.GetArrayFromImage(sitk_target_img),
-                                  sitk.GetArrayFromImage(sitk_warped_image), vox_target,
-                                  save_path=os.path.join('images/registrations', name + ".png"))
+            vox_moving = sitk_moving_img.GetSpacing()
+
+            DisplayRegistration2D(sitk.GetArrayFromImage(sitk_reference_img), sitk.GetArrayFromImage(sitk_moving_img),
+                                  sitk.GetArrayFromImage(sitk_warped_image), vox_moving,
+                                  save_path=os.path.join('images/registrations2', name + ".png"))
 
             end_time = time.time()
 
             print(end_time - start_time)
 
 
+
+# Visualise slice from the longitudinal direction in the middle of the pancreas
+def VisualiseMidSlices():
+    files = os.listdir(data_dir)
+
+    for f in files:
+        if f.endswith(".gz"):
+            name = f.split(".")[0]
+
+            # open label and image
+            img = nib.load(os.path.join(data_dir, f)).get_fdata()
+            gt = nib.load(os.path.join(labels_dir, f)).get_fdata()
+
+            # flatten label and find extent
+            gt_flat = np.sum(gt, axis=(0, 1))
+            indicies = np.where(gt_flat > 0)[0]
+            length = indicies.shape[0]
+
+            # get the middle index
+            x = indicies[int(length / 2)]
+
+            # visualise the middle slice
+            PlotSliceAndOverlay(np.rot90(img[:, :, x]), np.rot90(gt[:, :, x]),
+                                save_path=os.path.join("images", "2D", name + '.png'))
+
+
 def main():
-    # open a label and display it as a 3D mesh
-    lab = nib.load("pancreas.nii.gz")
-    lab_raw = lab.get_fdata()
+    img = nib.load("pancreas_001_warp.nii.gz").get_fdata()
 
-    gt = nib.load(os.path.join(labels_dir, "pancreas_001.nii.gz"))
-    gt_raw = gt.get_fdata()
-    gt_raw[gt_raw > 1] = 1
-    plot3Dmesh(gt_raw, lab_raw, 0.6444, save_path="fig1.png")
-
+    import matplotlib.pyplot as plt
+    plt.imshow(img[:, :, int(109/2)], cmap='gray')
+    plt.show()
 
 
 if __name__ == "__main__":
