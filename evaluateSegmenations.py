@@ -15,20 +15,29 @@ def main():
     files = os.listdir(data_dir)
     target_img = sitk.ReadImage(os.path.join(data_dir, target), sitk.sitkFloat32)
 
+    # store the number of failed registrations
+    failure_count = 0
+
     for f in files:
         if f.endswith(".gz"):
             name = f.split('.')[0]
             print(name)
 
             # load original and warped images
-            source_img = sitk.ReadImage(os.path.join(data_dir, f), sitk.sitkFloat32)
-            warped_img = sitk.ReadImage(os.path.join(reg_dir, name, name+"_warp.nii.gz"), sitk.sitkFloat32)
+            try:
+                source_img = sitk.ReadImage(os.path.join(data_dir, f), sitk.sitkFloat32)
+                warped_img = sitk.ReadImage(os.path.join(reg_dir, name, name+"_warp.nii.gz"), sitk.sitkFloat32)
 
-            vox_source = source_img.GetSpacing()
+                vox_source = source_img.GetSpacing()
 
-            DisplayRegistration2D(sitk.GetArrayFromImage(target_img), sitk.GetArrayFromImage(source_img),
-                                  sitk.GetArrayFromImage(warped_img), vox_source,
-                                  save_path=os.path.join(img_dir, name + ".png"))
+                DisplayRegistration2D(sitk.GetArrayFromImage(target_img), sitk.GetArrayFromImage(source_img),
+                                      sitk.GetArrayFromImage(warped_img), vox_source,
+                                      save_path=os.path.join(img_dir, name + ".png"))
+            except:
+                failure_count += 1
+                continue
+
+    print("Number of missing registrations: {0}".format(failure_count))
 
 
 if __name__ == "__main__":
