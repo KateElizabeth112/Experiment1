@@ -175,7 +175,7 @@ def DisplayRegistration2D(target, source, warped, vox_spacing, save_path=""):
 
     fontsize = 12
 
-    plt.suptitle("(Target voxel size: {0:.2f}, {1:.2f}, {2:.2f})".format(vox_spacing[0], vox_spacing[1], vox_spacing[2]))
+    plt.suptitle("(Source voxel size: {0:.2f}, {1:.2f}, {2:.2f})".format(vox_spacing[0], vox_spacing[1], vox_spacing[2]))
 
     plt.subplot(132)
     plt.imshow(source[int(source.shape[0] / 2), ::-1, :], cmap='gray')
