@@ -89,37 +89,9 @@ def RegisterImages(reference_img_name):
 
 
 
-# Visualise slice from the longitudinal direction in the middle of the pancreas
-def VisualiseMidSlices():
-    files = os.listdir(data_dir)
-
-    for f in files:
-        if f.endswith(".gz"):
-            name = f.split(".")[0]
-
-            # open label and image
-            img = nib.load(os.path.join(data_dir, f)).get_fdata()
-            gt = nib.load(os.path.join(labels_dir, f)).get_fdata()
-
-            # flatten label and find extent
-            gt_flat = np.sum(gt, axis=(0, 1))
-            indicies = np.where(gt_flat > 0)[0]
-            length = indicies.shape[0]
-
-            # get the middle index
-            x = indicies[int(length / 2)]
-
-            # visualise the middle slice
-            PlotSliceAndOverlay(np.rot90(img[:, :, x]), np.rot90(gt[:, :, x]),
-                                save_path=os.path.join("images", "2D", name + '.png'))
-
 
 def main():
-    img = nib.load("pancreas_001_warp.nii.gz").get_fdata()
 
-    import matplotlib.pyplot as plt
-    plt.imshow(img[:, :, int(109/2)], cmap='gray')
-    plt.show()
 
 
 if __name__ == "__main__":
