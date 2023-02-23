@@ -6,7 +6,7 @@ import nibabel as nib
 import time
 
 from registration import RigidRegistration2
-from display import Display3D, DisplayRegistration2D, Display2D, DisplayOverlay2D, PlotSliceAndOverlay
+from display import Display3D, DisplayRegistration2D, Display2D, DisplayOverlay2D, PlotSliceAndPrediction
 
 root_dir = '/Users/katecevora/Documents/PhD'
 os.chdir(root_dir)
@@ -91,7 +91,32 @@ def RegisterImages(reference_img_name):
 
 
 def main():
+    img_path = os.path.join(root_dir, "data/MSDPancreas/2D/imagesTr/")
+    label_path = os.path.join(root_dir, "data/MSDPancreas/2D/labelsTr/")
+    pred_path = os.path.join(root_dir, "data/MSDPancreas/2D/inference/")
+    output_dir = os.path.join(root_dir, "images/2D/central_5_slices_registered/")
+    files = os.listdir(img_path)
+    for f in files:
+        # try to load the file and the label so we can visualise them
 
+        # extract the file name so we can also open the label file
+        id = f.split('_')[1]
+        label_name = "pancreas_" + id + ".nii.gz"
+        print(label_name, f)
+
+        img_nii = nib.load(os.path.join(img_path, f))
+        lab_nii = nib.load(os.path.join(label_path, label_name))
+        pred_nii = nib.load(os.path.join(pred_path, label_name))
+
+        # Visualise
+        PlotSliceAndPrediction(np.rot90(img_nii.get_fdata()[:, :, 0]), np.rot90(lab_nii.get_fdata()[:, :, 0]),
+                               np.rot90(pred_nii.get_fdata()[:, :, 0]),
+                               save_path=os.path.join(output_dir, "pancreas_" + id + ".png"))
+
+
+
+
+    print("Done")
 
 
 if __name__ == "__main__":

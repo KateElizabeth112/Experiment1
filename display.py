@@ -216,3 +216,38 @@ def PlotSliceAndOverlay(image_slice, labels_slice, save_path=""):
         plt.show()
     else:
         plt.savefig(save_path)
+
+
+def PlotSliceAndPrediction(image_slice, labels_slice, preds_slice, save_path=""):
+    labels_slice[labels_slice > 1] = 1
+    preds_slice[preds_slice > 1] = 1
+
+    alpha_array_labels = np.zeros(labels_slice.shape)
+    alpha_array_labels[labels_slice > 0] = 0.5
+
+    alpha_array_preds = np.zeros(preds_slice.shape)
+    alpha_array_preds[preds_slice > 0] = 0.5
+
+    plt.subplot(121)
+    plt.imshow(image_slice, cmap='gray')
+    plt.imshow(labels_slice, cmap='jet', alpha=alpha_array_labels, vmin=0, vmax=2)
+    plt.title('Ground Truth')
+
+    plt.axis('off')
+
+    plt.subplot(122)
+    plt.imshow(image_slice, cmap='gray')
+    plt.imshow(preds_slice, cmap='jet', alpha=alpha_array_preds, vmin=0, vmax=2)
+    plt.title('Predictions')
+
+    plt.axis('off')
+
+    # Calculate Dice score
+    dice = np.sum(preds_slice[labels_slice == 1]) * 2.0 / (np.sum(preds_slice) + np.sum(labels_slice))
+
+    plt.suptitle("Dice score:  {0:.2f}".format(dice))
+
+    if save_path == "":
+        plt.show()
+    else:
+        plt.savefig(save_path)
