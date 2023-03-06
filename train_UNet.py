@@ -39,7 +39,7 @@ else:
     root_dir = '/Users/katecevora/Documents/PhD'
 
 data_dir = os.path.join(root_dir, 'data/MSDPancreas2D')
-images_dir = os.path.join(data_dir, "imagesTrPreprocessed")
+images_dir = os.path.join(data_dir, "imagesTr")
 labels_dir = os.path.join(data_dir, "labelsTr")
 
 save_path = os.path.join(root_dir, "models/MSDPancreas2D")
