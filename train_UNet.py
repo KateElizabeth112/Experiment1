@@ -5,6 +5,7 @@ import torch
 import torch.nn as nn
 import numpy as np
 import pickle as pkl
+from datetime import datetime as dt
 
 # local imports
 from dataset import create_dataset
@@ -32,13 +33,16 @@ MODEL_NAME = args['model_name']
 SLURM = args['slurm']
 FOLD = int(args['fold'])
 
+# set flag to time operations
+TIME = True
+
 # Set up directories and filenames
 if SLURM:
     root_dir = '/vol/biomedic3/kc2322/'
 else:
     root_dir = '/Users/katecevora/Documents/PhD'
 
-data_dir = os.path.join(root_dir, 'data/MSDPancreas2D')
+data_dir = os.path.join(root_dir, 'data/MSDPancreas2D/preprocessed')
 images_dir = os.path.join(data_dir, "imagesTr")
 labels_dir = os.path.join(data_dir, "labelsTr")
 
@@ -52,6 +56,8 @@ else:
 
 
 def train(train_loader, valid_loader, model_name):
+    print("\n{}: Starting training.".format(dt.fromtimestamp(dt.now().timestamp())))
+
     av_train_error = []
     av_train_dice = []
     av_valid_error = []
@@ -62,10 +68,9 @@ def train(train_loader, valid_loader, model_name):
     optimizer = torch.optim.Adam(net.parameters(), lr=3e-4, betas=(0.5, 0.999))
     optimizer.zero_grad()
     loss_BCE = nn.BCELoss()
-    save_path = os.path.join(root_dir, "models")
+    #save_path = os.path.join(root_dir, "models")
 
     for epoch in range(NUM_EPOCHS):
-
         ##########
         # Train
         ##########
@@ -79,24 +84,35 @@ def train(train_loader, valid_loader, model_name):
 
         # iterate over the batches in the training set
         for i, (data, label) in enumerate(train_loader):
-            if i % 50 == 0:
-                print("Epoch {}, batch {}".format(epoch, i))
+            if i % 10 == 0:
+                print("{}: Epoch {}, batch {}".format(dt.fromtimestamp(dt.now().timestamp()), epoch, i))
+                print("{} Feeding data through network".format(dt.fromtimestamp(dt.now().timestamp())))
 
             optimizer.zero_grad()
             data = data.to(device)
             label = label.to(device)
             pred = net(data)
 
+            if i % 10 == 0:
+                print("{} Calculating losses".format(dt.fromtimestamp(dt.now().timestamp())))
+
             # calculate loss
             L_dc = - dice_coeff(pred, label)
             L_ce = loss_BCE(pred, label)
             err = L_dc + L_ce
+
+            if i % 10 == 0:
+                print("{} Backpropagating losses".format(dt.fromtimestamp(dt.now().timestamp())))
+
             err.backward()
             optimizer.step()
 
             # append to the batch errors
             batch_train_error.append(err.item())
             batch_train_dice.append(-L_dc.item())
+
+
+        print("{} Finished iterating over data. Saving model.".format(dt.fromtimestamp(dt.now().timestamp())))
 
         # Checkpoint model
         torch.save({
@@ -113,7 +129,7 @@ def train(train_loader, valid_loader, model_name):
         batch_valid_dice = []
 
         # set network to eval prior to training loop
-        print("Running evaluation.....")
+        print("{}: Running evaluation.....".format(dt.fromtimestamp(dt.now().timestamp())))
         net.eval()
         for i, (data, label) in enumerate(valid_loader):
             data = data.to(device)
@@ -129,6 +145,8 @@ def train(train_loader, valid_loader, model_name):
             batch_valid_error.append(err.item())
             batch_valid_dice.append(-L_dc.item())
 
+        print("{}: Finished evaluation.".format(dt.fromtimestamp(dt.now().timestamp())))
+
         # Calculate the average training and validation error for this epoch and store
         av_train_error.append(np.mean(np.array(batch_train_error)))
         av_train_dice.append(np.mean(np.array(batch_train_dice)))
@@ -136,15 +154,18 @@ def train(train_loader, valid_loader, model_name):
         av_valid_dice.append(np.mean(np.array(batch_valid_dice)))
         eps.append(epoch)
 
+        print("{}: Saving losses.".format(dt.fromtimestamp(dt.now().timestamp())))
+
         # Save everything
-        f = open(os.path.join(root_dir, "{}_losses.pkl".format(model_name)), "wb")
+        f = open(os.path.join(save_path, "{}_losses.pkl".format(model_name)), "wb")
         pkl.dump([eps, av_train_error, av_train_dice, av_valid_error, av_valid_dice], f)
         f.close()
 
+        print("{}: Finished epoch".format(dt.fromtimestamp(dt.now().timestamp())))
         print('Epoch: {0}, train error: {1:.3f}, valid error: {2:.3f}'.format(eps[-1], av_train_error[-1],
                                                                               av_valid_error[-1]))
-        print('Average dice for training batch:')
-        print('Average dice for validation batch:')
+        #print('Average dice for training batch:')
+        #print('Average dice for validation batch:')
 
 
 def evaluate(test_loader):

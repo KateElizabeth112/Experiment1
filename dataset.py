@@ -141,6 +141,8 @@ class MSDPancreas(Dataset):
         img = np.array(img.get_fdata())
         lab = np.array(lab.get_fdata())
 
+
+
         # Expand the label to the number of channels so we can use one-hot encoding
         lab_full = np.zeros((lab.shape[0], lab.shape[1], self.num_channels))
 
@@ -148,7 +150,8 @@ class MSDPancreas(Dataset):
             lab_full[:, :, c][lab[:, :, 0] == c] = 1
 
         # swap channels to the first dimension as pytorch expects
-        img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        #img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        img = torch.tensor(img).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
         # carry out dataset augmentations if the flag has been set

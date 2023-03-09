@@ -95,6 +95,7 @@ def main():
     label_path = os.path.join(root_dir, "data/MSDPancreas/2D/labelsTr/")
     pred_path = os.path.join(root_dir, "data/MSDPancreas/2D/inference/")
     output_dir = os.path.join(root_dir, "images/2D/central_5_slices_registered/")
+
     files = os.listdir(img_path)
     for f in files:
         # try to load the file and the label so we can visualise them
