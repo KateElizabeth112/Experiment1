@@ -17,7 +17,7 @@ def double_conv(in_channels, out_channels, padding=1):
 
 class UNet(nn.Module):
 
-    def __init__(self, inChannels=1, outChannels=1):
+    def __init__(self, inChannels=1, outChannels=1, imgSize=512):
         super().__init__()
 
         self.inChannels = inChannels

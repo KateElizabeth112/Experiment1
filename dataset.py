@@ -105,7 +105,7 @@ def ImageTranform(img, label):
 
 
 class MSDPancreas(Dataset):
-    def __init__(self, root_dir, num_channels, train=True, transform=None):
+    def __init__(self, root_dir, num_channels, patch_size, train=True, transform=None):
         '''
           root_dir - string - path towards the folder containg the data
         '''
@@ -122,6 +122,7 @@ class MSDPancreas(Dataset):
 
         self.num_channels = num_channels
         self.transform = transform
+        self.patch_size = patch_size
 
     def __len__(self):
         return len(self.filenames)
@@ -148,9 +149,24 @@ class MSDPancreas(Dataset):
             lab_full[:, :, c][lab[:, :, 0] == c] = 1
 
         # swap channels to the first dimension as pytorch expects
-        img = torch.tensor(np.swapaxes(img, 0, 2)).double()
-        #img = torch.tensor(img).double()
+        # shape (C, H, W)
+        #img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        img = torch.tensor(img).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
+
+        # Randomly crop if we are using patch size < 512
+        img_size = img.shape
+        if self.patch_size < img_size[2]:
+            maxW = img_size[2] - self.patch_size
+            maxH = img_size[1] - self.patch_size
+
+            # randomly select patch origin
+            xO = np.random.randint(0, maxH)
+            yO = np.random.randint(0, maxW)
+
+            # Select patch
+            img = img[:, xO:xO+self.patch_size, yO:yO+self.patch_size]
+            lab_full = lab_full[:, xO:xO+self.patch_size, yO:yO+self.patch_size]
 
         # carry out dataset augmentations if the flag has been set
         if self.transform:
@@ -159,7 +175,7 @@ class MSDPancreas(Dataset):
         return img, lab_full
 
 
-def create_dataset(root_dir, data_dir, fold, batch_size, num_workers):
+def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size):
     # Create train and test datasets
 
     # load folds
@@ -168,7 +184,7 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers):
     f.close()
 
     # create a dataset
-    dataset = MSDPancreas(root_dir=data_dir, num_channels=2, train=True)
+    dataset = MSDPancreas(root_dir=data_dir, num_channels=2, patch_size=patch_size, train=True)
 
     # create train and test datasets
     train_dataset = Subset(dataset, train_indices[fold].astype('int'))
@@ -176,17 +192,6 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers):
 
     print("Number of training samples: {}".format(train_dataset.__len__()))
     print("Number of validation samples: {}".format(valid_dataset.__len__()))
-
-    # create a dataset
-    test_dataset = MSDPancreas(root_dir=data_dir, num_channels=2, train=False)
-
-    # Create a data loader
-    test_loader = DataLoader(
-        test_dataset,
-        shuffle=False,
-        batch_size=1,
-        num_workers=1
-    )
 
     # Create the required DataLoaders for training and testing
     train_loader = DataLoader(
@@ -205,7 +210,7 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers):
         drop_last=True
     )
 
-    return train_loader, valid_loader, test_loader
+    return train_loader, valid_loader
 
 
 def create_test_dataset(data_dir):

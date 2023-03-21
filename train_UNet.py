@@ -24,6 +24,7 @@ args = vars(parser.parse_args())
 
 # set up variables
 NUM_CONV_LAYERS = 7
+PATCH_SIZE = 256
 BATCH_SIZE = int(args['batch_size'])
 NUM_WORKERS = 2
 NUM_EPOCHS = int(args['num_epochs'])
@@ -55,7 +56,7 @@ else:
     device = torch.device('cpu')
 
 
-def train(train_loader, valid_loader, model_name):
+def train(train_loader, valid_loader, model_name, patch_size):
     print("\n{}: Starting training.".format(dt.fromtimestamp(dt.now().timestamp())))
 
     av_train_error = []
@@ -64,7 +65,7 @@ def train(train_loader, valid_loader, model_name):
     av_valid_dice = []
     eps = []
 
-    net = UNet(inChannels=1, outChannels=2).to(device).double()
+    net = UNet(inChannels=1, outChannels=2, imgSize=patch_size).to(device).double()
     optimizer = torch.optim.Adam(net.parameters(), lr=3e-4, betas=(0.5, 0.999))
     optimizer.zero_grad()
     loss_BCE = nn.BCELoss()
@@ -189,13 +190,11 @@ def main():
     print("Fold: {}".format(FOLD))
     print("Number of epochs: {}".format(NUM_EPOCHS))
 
-    train_loader, valid_loader, test_loader = create_dataset(root_dir, data_dir, FOLD, BATCH_SIZE, NUM_WORKERS)
+    train_loader, valid_loader = create_dataset(root_dir, data_dir, FOLD, BATCH_SIZE, NUM_WORKERS, PATCH_SIZE)
 
     # Train the network
-    train(train_loader, valid_loader, MODEL_NAME)
+    train(train_loader, valid_loader, MODEL_NAME, PATCH_SIZE)
 
-    # Evaluate saved model
-    #evaluate(test_loader)
 
 
 if __name__ == '__main__':
