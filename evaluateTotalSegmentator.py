@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import nibabel as nib
+import pickle as pkl
 from display import plot3Dmesh
 
 SYSTEM = 'remote'
@@ -19,6 +20,7 @@ else:
     labels_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/labelsTr')
     preds_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/TotalSegmentator')
     images_dir = os.path.join(root_dir, 'images/TotalSegmentator/3D')
+    results_dir = os.path.join(root_dir, 'results/TotalSegmentator')
 
 
 def getDiceScores():
@@ -48,7 +50,11 @@ def getDiceScores():
             scores[name] = dice
 
             # Plot
-            plot3Dmesh(gt_raw, lab_raw, dice, save_path=os.path.join(images_dir, name + ".png"))
+            #plot3Dmesh(gt_raw, lab_raw, dice, save_path=os.path.join(images_dir, name + ".png"))
+
+    f = open(os.path.join(results_dir, "dice_scores.pkl"), "wb")
+    pkl.dump(scores, f)
+    f.close()
 
     return scores
 
@@ -56,7 +62,9 @@ def getDiceScores():
 def main():
 
     scores = getDiceScores()
+
     print("Average Dice score = {0:.2f}".format(sum(scores.values()) / len(scores)))
+
 
 
 if __name__ == "__main__":
