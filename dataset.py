@@ -141,8 +141,6 @@ class MSDPancreas(Dataset):
         img = np.array(img.get_fdata())
         lab = np.array(lab.get_fdata())
 
-
-
         # Expand the label to the number of channels so we can use one-hot encoding
         lab_full = np.zeros((lab.shape[0], lab.shape[1], self.num_channels))
 
@@ -150,8 +148,8 @@ class MSDPancreas(Dataset):
             lab_full[:, :, c][lab[:, :, 0] == c] = 1
 
         # swap channels to the first dimension as pytorch expects
-        #img = torch.tensor(np.swapaxes(img, 0, 2)).double()
-        img = torch.tensor(img).double()
+        img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        #img = torch.tensor(img).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
         # carry out dataset augmentations if the flag has been set
@@ -210,9 +208,11 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers):
     return train_loader, valid_loader, test_loader
 
 
-def create_test_dataset(root_dir, data_dir):
+def create_test_dataset(data_dir):
     # create just a test dataset
     test_dataset = MSDPancreas(root_dir=data_dir, num_channels=2, train=False)
+
+    ds_length = test_dataset.__len__()
 
     # Create a data loader
     test_loader = DataLoader(
@@ -222,4 +222,4 @@ def create_test_dataset(root_dir, data_dir):
         num_workers=1
     )
 
-    return test_loader
+    return test_loader, ds_length

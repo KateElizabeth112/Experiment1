@@ -114,8 +114,9 @@ def main():
     mu, sigma, percentiles = getGlobalMeanAndSTD(os.path.join(root_dir, "data/MSDPancreas2D/imagesTr/"),
                                                  os.path.join(root_dir, "data/MSDPancreas2D/labelsTr/"),
                                                  150)
-    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTr/"),
-                     os.path.join(root_dir, "data/MSDPancreas2D/imagesTrPreprocessed/"),
+
+    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTs/"),
+                     os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTs/"),
                      mu,
                      sigma,
                      percentiles)

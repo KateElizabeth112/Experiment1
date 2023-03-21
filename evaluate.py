@@ -15,7 +15,7 @@ from display import PlotSliceAndPrediction
 
 
 ROOT_DIR = '/Users/katecevora/Documents/PhD'
-DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D')
+DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
 MODEL_NAME = "unet_v1_0.pt"
@@ -43,7 +43,7 @@ def get_surface_dice(y_pred, y, class_thresholds):
     return res
 
 
-def evaluate(test_loader, model_path, fold):
+def evaluate(test_loader, model_path, fold, ds_length):
     # Check if we have a GPU
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -63,15 +63,19 @@ def evaluate(test_loader, model_path, fold):
     #filenames_ts = pkl.load(f)
     #f.close()
 
-    # create an empty dictionary to store results
-    results_dict = {}
-    dice_all = np.zeros(NUM_CHANNELS)
-    dice_all.fill(np.nan)
-    nsd_all = np.zeros(NUM_CHANNELS)
-    nsd_all.fill(np.nan)
+    # create an empty array to store results
+    dice_all = np.zeros((NUM_CHANNELS, ds_length))
+    nsd_all = np.zeros((NUM_CHANNELS, ds_length))
+
+    # Make a new folder to store the output images
+    try:
+        os.mkdir(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0]))
+    except:
+        print("Output directory already exists")
 
     for j, (data, lab) in enumerate(test_loader):
         pred = net(data.to(device))  # shape (B, C, H, W)
+
         # convert preds to one-hot so it's comparable with output from nnU-Net
         max_idx = torch.argmax(pred, 1, keepdim=True)
         one_hot = torch.FloatTensor(pred.shape)
@@ -80,6 +84,9 @@ def evaluate(test_loader, model_path, fold):
 
         dice = get_dice_per_class(one_hot, lab.to(device)).cpu().detach().numpy()
         #nsd = get_surface_dice(one_hot, lab.to(device), [1.5 for i in range(14)])
+
+        # Fill Dice and NSD array
+        dice_all[:, j] = dice
 
         pred = one_hot.cpu().detach().numpy()
         lab = lab.cpu().detach().numpy()
@@ -90,10 +97,18 @@ def evaluate(test_loader, model_path, fold):
         lab = np.squeeze(lab)[1, :, :]
         img = np.squeeze(img)
 
-        # Visualise
-        PlotSliceAndPrediction(img, lab, pred, save_path=os.path.join(OUTPUT_DIR, "{}.png".format(j)))
+        if False:
+            # Visualise
+            PlotSliceAndPrediction(img, lab, pred, save_path=os.path.join(OUTPUT_DIR,
+                                                                          MODEL_NAME.split(".")[0],
+                                                                          "{}.png".format(j)))
 
-        print('Done')
+    # Save results
+    f = open(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0], "results.pkl"), 'wb')
+    pkl.dump([dice_all, nsd_all], f)
+    f.close()
+
+    print('Done')
 
 
 
@@ -101,8 +116,8 @@ def evaluate(test_loader, model_path, fold):
 
 
 def main():
-    test_loader = create_test_dataset(ROOT_DIR, DATA_DIR)
-    evaluate(test_loader, os.path.join(MODEL_DIR, MODEL_NAME), FOLD)
+    test_loader, ds_length = create_test_dataset(DATA_DIR)
+    evaluate(test_loader, os.path.join(MODEL_DIR, MODEL_NAME), FOLD, ds_length)
 
 
 if __name__ == "__main__":
