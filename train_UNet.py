@@ -24,7 +24,7 @@ args = vars(parser.parse_args())
 
 # set up variables
 NUM_CONV_LAYERS = 7
-PATCH_SIZE = 256
+PATCH_SIZE = 128
 BATCH_SIZE = int(args['batch_size'])
 NUM_WORKERS = 2
 NUM_EPOCHS = int(args['num_epochs'])
