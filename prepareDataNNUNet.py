@@ -3,6 +3,7 @@ import numpy as np
 import os
 import nibabel as nib
 
+
 root_dir = '/vol/biomedic3/kc2322/'
 
 data_dir = os.path.join(root_dir, 'data/MSDPancreas/MSDPancreas/imagesTrMIRTK')

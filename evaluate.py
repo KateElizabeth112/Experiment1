@@ -6,6 +6,7 @@ import numpy as np
 import os
 import pickle as pkl
 import torch
+import torchio as tio
 from loss import get_dice_per_class
 from UNet import UNet
 from dataset import create_test_dataset
@@ -13,14 +14,15 @@ from display import PlotSliceAndPrediction
 #from monai.metrics import compute_surface_dice
 
 
-
 ROOT_DIR = '/Users/katecevora/Documents/PhD'
-DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
+DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/preprocessed')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v1_0.pt"
+MODEL_NAME = "unet_v2_0.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
+PATCH_SIZE = 256
+PATCH_OVERLAP = 4
 
 organs_dict = {0: "background",
                1: "pancreas",
@@ -74,19 +76,55 @@ def evaluate(test_loader, model_path, fold, ds_length):
         print("Output directory already exists")
 
     for j, (data, lab) in enumerate(test_loader):
-        pred = net(data.to(device))  # shape (B, C, H, W)
+        print("Evaluating test image {}".format(j))
+        if PATCH_SIZE < 512:
+            # Convert pytorch 3D image to a torchio 4d image
+            subject = tio.Subject(image=tio.ScalarImage(tensor=data))
 
-        # convert preds to one-hot so it's comparable with output from nnU-Net
-        max_idx = torch.argmax(pred, 1, keepdim=True)
-        one_hot = torch.FloatTensor(pred.shape)
-        one_hot.zero_()
-        one_hot.scatter_(1, max_idx, 1)
+            grid_sampler = tio.inference.GridSampler(
+                subject,
+                (1, PATCH_SIZE, PATCH_SIZE),
+                (0, PATCH_OVERLAP, PATCH_OVERLAP),
+            )
 
-        dice = get_dice_per_class(one_hot, lab.to(device)).cpu().detach().numpy()
+            patch_loader = torch.utils.data.DataLoader(grid_sampler, batch_size=4)
+            aggregator = tio.inference.GridAggregator(grid_sampler)
+
+            with torch.no_grad():
+                for patches_batch in patch_loader:
+                    # drop a dimension from the input tensor (dimension 2 is redundant)
+                    input_tensor = torch.squeeze(patches_batch['image'][tio.DATA], dim=2)
+                    locations = patches_batch[tio.LOCATION]
+                    logits = net(input_tensor.to(device).double())
+
+                    # Expand 2nd dimension
+                    logits = torch.unsqueeze(logits, dim=2)
+                    labels = logits.argmax(dim=tio.CHANNELS_DIMENSION, keepdim=True)
+                    outputs = labels
+                    aggregator.add_batch(outputs, locations)
+            output_tensor = aggregator.get_output_tensor()
+
+            # drop redundant dimensions from output tensor, and one hot encode
+            pred = torch.squeeze(output_tensor)
+            one_hot = torch.FloatTensor(2, 512, 512)
+            one_hot.zero_()
+            one_hot[0][pred == 0] = 1
+            one_hot[1][pred == 1] = 1
+            one_hot = torch.unsqueeze(one_hot, dim=0)
+        else:
+            pred = net(data.to(device))  # shape (B, C, H, W)
+
+            # convert preds to one-hot so it's comparable with output from nnU-Net
+            max_idx = torch.argmax(pred, 1, keepdim=True)
+            one_hot = torch.FloatTensor(pred.shape)
+            one_hot.zero_()
+            one_hot.scatter_(1, max_idx, 1)
+
+        #dice = get_dice_per_class(one_hot, lab.to(device)).cpu().detach().numpy()
         #nsd = get_surface_dice(one_hot, lab.to(device), [1.5 for i in range(14)])
 
         # Fill Dice and NSD array
-        dice_all[:, j] = dice
+        #dice_all[:, j] = dice
 
         pred = one_hot.cpu().detach().numpy()
         lab = lab.cpu().detach().numpy()
@@ -97,7 +135,7 @@ def evaluate(test_loader, model_path, fold, ds_length):
         lab = np.squeeze(lab)[1, :, :]
         img = np.squeeze(img)
 
-        if False:
+        if True:
             # Visualise
             PlotSliceAndPrediction(img, lab, pred, save_path=os.path.join(OUTPUT_DIR,
                                                                           MODEL_NAME.split(".")[0],

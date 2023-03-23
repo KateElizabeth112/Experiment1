@@ -150,8 +150,8 @@ class MSDPancreas(Dataset):
 
         # swap channels to the first dimension as pytorch expects
         # shape (C, H, W)
-        #img = torch.tensor(np.swapaxes(img, 0, 2)).double()
-        img = torch.tensor(img).double()
+        img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        #img = torch.tensor(img).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
         # Randomly crop if we are using patch size < 512
@@ -215,7 +215,7 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size
 
 def create_test_dataset(data_dir):
     # create just a test dataset
-    test_dataset = MSDPancreas(root_dir=data_dir, num_channels=2, train=False)
+    test_dataset = MSDPancreas(root_dir=data_dir, num_channels=2, train=False, patch_size=512)
 
     ds_length = test_dataset.__len__()
 

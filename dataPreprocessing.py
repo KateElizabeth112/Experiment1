@@ -3,7 +3,7 @@ import os
 import random
 import numpy as np
 import nibabel as nib
-import SimpleITK as sitk
+#import SimpleITK as sitk
 import matplotlib.pyplot as plt
 import copy
 
@@ -105,9 +105,11 @@ def clipAndNormalise(input_path, output_path, mu, sigma, percentiles):
                 plt.show()
 
             # And save in the new location
-            img_sitk = sitk.GetImageFromArray(img_raw_normed)
-            sitk.WriteImage(img_sitk, os.path.join(output_path, f))
+            #img_sitk = sitk.GetImageFromArray(img_raw_normed)
+            #sitk.WriteImage(img_sitk, os.path.join(output_path, f))
 
+            clipped_img = nib.Nifti1Image(img_raw_normed, img.affine, img.header)
+            nib.save(clipped_img, os.path.join(output_path, f))
 
 def main():
 
