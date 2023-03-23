@@ -150,8 +150,8 @@ class MSDPancreas(Dataset):
 
         # swap channels to the first dimension as pytorch expects
         # shape (C, H, W)
-        img = torch.tensor(np.swapaxes(img, 0, 2)).double()
-        #img = torch.tensor(img).double()
+        #img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        img = torch.tensor(img).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
         # Randomly crop if we are using patch size < 512
