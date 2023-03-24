@@ -20,7 +20,7 @@ parser.add_argument("-n", "--num_epochs", default=10, help="Number of training e
 parser.add_argument("-m", "--model_name", default="unet", help="Name of the model to be saved")
 parser.add_argument("-s", "--slurm", default=False, help="Running on SLURM")
 parser.add_argument("-f", "--fold", default=0, help="Fold for cross-validation")
-parser.add_argument("-p", "--patch_size", default=512, help="Specify patch size for training")
+parser.add_argument("-p", "--patch_size", default=256, help="Specify patch size for training")
 args = vars(parser.parse_args())
 
 # set up variables
@@ -194,6 +194,7 @@ def main():
     print("SLURM: {}".format(SLURM))
     print("Model name: {}".format(MODEL_NAME))
     print("Root dir: {}".format(root_dir))
+    print("Path size: {}".format(PATCH_SIZE))
     print("Batch size: {}".format(BATCH_SIZE))
     print("Fold: {}".format(FOLD))
     print("Number of epochs: {}".format(NUM_EPOCHS))
