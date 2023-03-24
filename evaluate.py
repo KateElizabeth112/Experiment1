@@ -18,10 +18,10 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/preprocessed')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v2_0.pt"
+MODEL_NAME = "unet_v2_2.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
-PATCH_SIZE = 256
+PATCH_SIZE = 128
 PATCH_OVERLAP = 4
 
 organs_dict = {0: "background",

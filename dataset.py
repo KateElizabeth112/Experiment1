@@ -111,7 +111,8 @@ class MSDPancreas(Dataset):
         '''
         # Save the root_dir as a class variable
         self.root_dir = root_dir
-        if train:
+        self.train = train
+        if self.train:
             self.train_imgs = os.path.join(root_dir, "imagesTr")
             self.train_labels = os.path.join(root_dir, "labelsTr")
             self.filenames = os.listdir(os.path.join(root_dir, "imagesTr"))
@@ -150,8 +151,10 @@ class MSDPancreas(Dataset):
 
         # swap channels to the first dimension as pytorch expects
         # shape (C, H, W)
-        #img = torch.tensor(np.swapaxes(img, 0, 2)).double()
-        img = torch.tensor(img).double()
+        if self.train:
+            img = torch.tensor(img).double()
+        else:
+            img = torch.tensor(np.swapaxes(img, 0, 2)).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
         # Randomly crop if we are using patch size < 512

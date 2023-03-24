@@ -20,11 +20,12 @@ parser.add_argument("-n", "--num_epochs", default=10, help="Number of training e
 parser.add_argument("-m", "--model_name", default="unet", help="Name of the model to be saved")
 parser.add_argument("-s", "--slurm", default=False, help="Running on SLURM")
 parser.add_argument("-f", "--fold", default=0, help="Fold for cross-validation")
+parser.add_argument("-p", "--patch_size", default=512, help="Specify patch size for training")
 args = vars(parser.parse_args())
 
 # set up variables
 NUM_CONV_LAYERS = 7
-PATCH_SIZE = 128
+PATCH_SIZE = int(args["patch_size"])
 BATCH_SIZE = int(args['batch_size'])
 NUM_WORKERS = 2
 NUM_EPOCHS = int(args['num_epochs'])
@@ -58,6 +59,13 @@ else:
 
 def train(train_loader, valid_loader, model_name, patch_size):
     print("\n{}: Starting training.".format(dt.fromtimestamp(dt.now().timestamp())))
+
+    print("Saving model config at: {}".format(os.path.join(save_path, '{}_config.pkl'.format(model_name))))
+    config_dict = {"patch_size": PATCH_SIZE,
+                   "batch_size": BATCH_SIZE}
+    f = open(os.path.join(save_path, '{}_config.pkl'.format(model_name)), 'wb')
+    pkl.dump(config_dict, f)
+    f.close()
 
     av_train_error = []
     av_train_dice = []
