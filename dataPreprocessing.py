@@ -57,7 +57,7 @@ def getGlobalMeanAndSTD(path_images, path_labels,  n_samples):
     sigma = np.std(np.array(stack))
 
     # get percentiles
-    percentiles = np.percentile(np.array(stack), [50, 99.5])
+    percentiles = np.percentile(np.array(stack), [2.5, 99.5])
 
     return mu, sigma, percentiles
 
@@ -85,7 +85,7 @@ def clipAndNormalise(input_path, output_path, mu, sigma, percentiles):
             # Then normalise
             img_raw_normed = (img_raw_clipped - mu) / sigma
 
-            if False:
+            if True:
                 plt.clf()
                 plt.subplot(1, 3, 1)
                 plt.imshow(img_raw_clipped, cmap='gray')

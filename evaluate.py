@@ -18,10 +18,10 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/preprocessed')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v2_2.pt"
+MODEL_NAME = "unet_v2_1.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
-PATCH_SIZE = 128
+PATCH_SIZE = 256
 PATCH_OVERLAP = 4
 
 organs_dict = {0: "background",
@@ -137,9 +137,12 @@ def evaluate(test_loader, model_path, fold, ds_length):
 
         if True:
             # Visualise
-            PlotSliceAndPrediction(img, lab, pred, save_path=os.path.join(OUTPUT_DIR,
+            dice = PlotSliceAndPrediction(img, lab, pred, save_path=os.path.join(OUTPUT_DIR,
                                                                           MODEL_NAME.split(".")[0],
                                                                           "{}.png".format(j)))
+
+            # Fill Dice and NSD array
+            dice_all[:, j] = dice
 
     # Save results
     f = open(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0], "results.pkl"), 'wb')

@@ -10,8 +10,8 @@ OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 
 
 def main():
-    models = ["nnunet", "unet_v1_0", "unet_v1_1"]
-    names = ["nnUNet", "UNet", "UNet (preprocessed)"]
+    models = ["unet_v2_1", "unet_v2_2", "unet_v2_3"]
+    names = ["random, p=256", "random, p=128", "weighted, p=256"]
     colors = ["#ffa07a", "#008b45", "#ed90e1"]
 
     plt.clf()

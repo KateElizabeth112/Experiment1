@@ -251,3 +251,5 @@ def PlotSliceAndPrediction(image_slice, labels_slice, preds_slice, save_path="")
         plt.show()
     else:
         plt.savefig(save_path)
+
+    return dice

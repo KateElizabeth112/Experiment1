@@ -166,8 +166,11 @@ class MSDPancreas(Dataset):
                 lab = patch['lab'].data
                 break
 
-            img = img.squeeze(0)
-            lab = lab.squeeze(0)
+        img = img.squeeze(0)
+        lab = lab.squeeze(0)
+
+        if self.train == False:
+            img = torch.swapaxes(img, 0, 2)
 
         # Expand the label to the number of channels so we can use one-hot encoding
         lab_full = np.zeros((self.num_channels, lab.shape[1], lab.shape[2]))
