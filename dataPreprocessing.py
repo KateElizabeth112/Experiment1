@@ -85,7 +85,7 @@ def clipAndNormalise(input_path, output_path, mu, sigma, percentiles):
             # Then normalise
             img_raw_normed = (img_raw_clipped - mu) / sigma
 
-            if True:
+            if False:
                 plt.clf()
                 plt.subplot(1, 3, 1)
                 plt.imshow(img_raw_clipped, cmap='gray')
@@ -117,8 +117,8 @@ def main():
                                                  os.path.join(root_dir, "data/MSDPancreas2D/labelsTr/"),
                                                  150)
 
-    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTs/"),
-                     os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTs/"),
+    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTr/"),
+                     os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTr/"),
                      mu,
                      sigma,
                      percentiles)

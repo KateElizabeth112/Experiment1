@@ -137,48 +137,37 @@ class MSDPancreas(Dataset):
         label_name = img_name.split('.')[0][:-5] + ".nii.gz"
 
         # Load the nifty image
-        img = nib.load(os.path.join(self.train_imgs, img_name)).get_fdata()
-        lab = nib.load(os.path.join(self.train_labels, label_name)).get_fdata()
+        img = nib.load(os.path.join(self.train_imgs, img_name))
+        lab = nib.load(os.path.join(self.train_labels, label_name))
 
-        # Convert to tensors
-        img = torch.tensor(img).double()
-        lab = torch.tensor(lab).double()
-        lab = torch.swapaxes(lab, 0, 2)
+        # Get the voxel values as a numpy array
+        img = np.array(img.get_fdata())
+        lab = np.array(lab.get_fdata())
 
-        # Expand first dimension so we can use torchio
-        img = torch.unsqueeze(img, 0)
-        lab = torch.unsqueeze(lab, 0)
+        # Expand the label to the number of channels so we can use one-hot encoding
+        lab_full = np.zeros((lab.shape[0], lab.shape[1], self.num_channels))
+
+        for c in range(self.num_channels):
+            lab_full[:, :, c][lab[:, :, 0] == c] = 1
+
+        # swap channels to the first dimension as pytorch expects
+        # shape (C, H, W)
+        img = torch.tensor(np.swapaxes(img, 0, 2)).double()
+        lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
         # Randomly crop if we are using patch size < 512
         img_size = img.shape
         if self.patch_size < img_size[2]:
+            maxW = img_size[2] - self.patch_size
+            maxH = img_size[1] - self.patch_size
 
-            # Try out weighted sampling
-            subject = tio.Subject(
-                img=tio.ScalarImage(tensor=img),
-                lab=tio.Image(tensor=lab),
-                sampling_map=tio.Image(tensor=lab, type=tio.SAMPLING_MAP),
-            )
-            sampler = tio.data.WeightedSampler((1, self.patch_size, self.patch_size), 'sampling_map')
+            # randomly select patch origin
+            xO = np.random.randint(0, maxH)
+            yO = np.random.randint(0, maxW)
 
-            for patch in sampler(subject):
-                img = patch['img'].data
-                lab = patch['lab'].data
-                break
-
-        img = img.squeeze(0)
-        lab = lab.squeeze(0)
-
-        if self.train == False:
-            img = torch.swapaxes(img, 0, 2)
-
-        # Expand the label to the number of channels so we can use one-hot encoding
-        lab_full = np.zeros((self.num_channels, lab.shape[1], lab.shape[2]))
-
-        for c in range(self.num_channels):
-            lab_full[c, :, :][lab[0, :, :] == c] = 1
-
-        lab_full = torch.tensor(lab_full).double()
+            # Select patch
+            img = img[:, xO:xO+self.patch_size, yO:yO+self.patch_size]
+            lab_full = lab_full[:, xO:xO+self.patch_size, yO:yO+self.patch_size]
 
         # carry out dataset augmentations if the flag has been set
         if self.transform:
