@@ -18,10 +18,10 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/preprocessed')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v2_2.pt"
+MODEL_NAME = "unet_v2_4.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
-PATCH_SIZE = 256
+#PATCH_SIZE = 256
 PATCH_OVERLAP = 4
 
 organs_dict = {0: "background",
@@ -45,7 +45,7 @@ def get_surface_dice(y_pred, y, class_thresholds):
     return res
 
 
-def evaluate(test_loader, model_path, fold, ds_length):
+def evaluate(test_loader, model_path, model_name, fold, ds_length):
     # Check if we have a GPU
     if torch.cuda.is_available():
         device = torch.device('cuda')
@@ -55,10 +55,18 @@ def evaluate(test_loader, model_path, fold, ds_length):
     # load the model
     net = UNet(inChannels=1, outChannels=NUM_CHANNELS).to(device).double()
 
-    checkpoint = torch.load(model_path, map_location=torch.device(device))
+    checkpoint = torch.load(os.path.join(model_path, model_name), map_location=torch.device(device))
     net.load_state_dict(checkpoint["model_state_dict"])
     epoch = checkpoint["epoch"]
     net.eval()
+
+    # Read the config file
+    config_file = model_name.split('.')[0] + "_config.pkl"
+    f = open(os.path.join(model_path, config_file), 'rb')
+    config_dict = pkl.load(f)
+    f.close()
+
+    PATCH_SIZE = config_dict["patch_size"]
 
     # load the filenames of test data
     #f = open(os.path.join(root_dir, "filenames_ts.pkl"), 'rb')
@@ -158,7 +166,7 @@ def evaluate(test_loader, model_path, fold, ds_length):
 
 def main():
     test_loader, ds_length = create_test_dataset(DATA_DIR)
-    evaluate(test_loader, os.path.join(MODEL_DIR, MODEL_NAME), FOLD, ds_length)
+    evaluate(test_loader, MODEL_DIR, MODEL_NAME, FOLD, ds_length)
 
 
 if __name__ == "__main__":

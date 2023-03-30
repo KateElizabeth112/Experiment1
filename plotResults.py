@@ -10,8 +10,8 @@ OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 
 
 def main():
-    models = ["unet_v2_1", "unet_v2_2", "unet_v2_3"]
-    names = ["random, p=256", "random, p=128", "weighted, p=256"]
+    models = ["unet_v2_1",  "unet_v2_3", "unet_v2_4"]
+    names = ["random, (50, 99.5)",  "weighted, (50, 99.5)", "weighted (2.5, 99.5)"]
     colors = ["#ffa07a", "#008b45", "#ed90e1"]
 
     plt.clf()

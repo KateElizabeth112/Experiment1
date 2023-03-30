@@ -59,6 +59,7 @@ else:
 
 def train(train_loader, valid_loader, model_name, patch_size):
     print("\n{}: Starting training.".format(dt.fromtimestamp(dt.now().timestamp())))
+    start_time = dt.now()
 
     print("Saving model config at: {}".format(os.path.join(save_path, '{}_config.pkl'.format(model_name))))
     config_dict = {"patch_size": PATCH_SIZE,
@@ -120,7 +121,6 @@ def train(train_loader, valid_loader, model_name, patch_size):
             batch_train_error.append(err.item())
             batch_train_dice.append(-L_dc.item())
 
-
         print("{} Finished iterating over data. Saving model.".format(dt.fromtimestamp(dt.now().timestamp())))
 
         # Checkpoint model
@@ -173,6 +173,10 @@ def train(train_loader, valid_loader, model_name, patch_size):
         print("{}: Finished epoch".format(dt.fromtimestamp(dt.now().timestamp())))
         print('Epoch: {0}, train error: {1:.3f}, valid error: {2:.3f}'.format(eps[-1], av_train_error[-1],
                                                                               av_valid_error[-1]))
+        time_elapsed = dt.now() - start_time
+        time_elapsed_s = time_elapsed.total_seconds()
+        time_elapsed_h = divmod(time_elapsed_s, 3600)[0]
+        print("Time elasped since start of training: {}".format(time_elapsed_h))
         #print('Average dice for training batch:')
         #print('Average dice for validation batch:')
 
