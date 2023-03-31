@@ -9,7 +9,7 @@ import copy
 
 
 root_dir = '/Users/katecevora/Documents/PhD'
-
+CLIP = False
 
 def getGlobalMeanAndSTD(path_images, path_labels,  n_samples):
     """
@@ -77,15 +77,18 @@ def clipAndNormalise(input_path, output_path, mu, sigma, percentiles):
             img_raw = img.get_fdata()
 
             # First clip
-            img_raw_clipped = copy.deepcopy(img_raw)
-            img_raw_clipped[img_raw < percentiles[0]] = percentiles[0]
-            img_raw_clipped[img_raw > percentiles[1]] = percentiles[1]
+            if CLIP:
+                img_raw_clipped = copy.deepcopy(img_raw)
+                img_raw_clipped[img_raw < percentiles[0]] = percentiles[0]
+                img_raw_clipped[img_raw > percentiles[1]] = percentiles[1]
+            else:
+                img_raw_clipped = copy.deepcopy(img_raw)
 
 
             # Then normalise
             img_raw_normed = (img_raw_clipped - mu) / sigma
 
-            if False:
+            if True:
                 plt.clf()
                 plt.subplot(1, 3, 1)
                 plt.imshow(img_raw_clipped, cmap='gray')
@@ -117,8 +120,8 @@ def main():
                                                  os.path.join(root_dir, "data/MSDPancreas2D/labelsTr/"),
                                                  150)
 
-    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTr/"),
-                     os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTr/"),
+    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTs/"),
+                     os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTs/"),
                      mu,
                      sigma,
                      percentiles)

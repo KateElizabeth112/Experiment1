@@ -18,7 +18,7 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/preprocessed')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v2_4.pt"
+MODEL_NAME = "unet_v2_5.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
 #PATCH_SIZE = 256
@@ -55,6 +55,13 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
     # load the model
     net = UNet(inChannels=1, outChannels=NUM_CHANNELS).to(device).double()
 
+    # Make a new folder to store the output images
+    try:
+        os.mkdir(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0]))
+    except:
+        print("Output directory already exists")
+
+
     checkpoint = torch.load(os.path.join(model_path, model_name), map_location=torch.device(device))
     net.load_state_dict(checkpoint["model_state_dict"])
     epoch = checkpoint["epoch"]
@@ -68,6 +75,21 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
 
     PATCH_SIZE = config_dict["patch_size"]
 
+    # Load the loss data
+    loss_file = model_name.split('.')[0] + "_losses.pkl"
+    f = open(os.path.join(model_path, loss_file), 'rb')
+    [eps, av_train_error, av_train_dice, av_valid_error, av_valid_dice] = pkl.load(f)
+    f.close()
+
+    # Plot the loss curves and save
+    plt.clf()
+    plt.plot(eps, av_train_error, label="Train error")
+    plt.plot(eps, av_valid_error, label="Valid error")
+    plt.plot(eps, av_train_dice, label="Train Dice")
+    plt.plot(eps, av_valid_dice, label="Valid Dice")
+    plt.legend()
+    plt.savefig(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0], "losses.png"))
+
     # load the filenames of test data
     #f = open(os.path.join(root_dir, "filenames_ts.pkl"), 'rb')
     #filenames_ts = pkl.load(f)
@@ -76,12 +98,6 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
     # create an empty array to store results
     dice_all = np.zeros((NUM_CHANNELS, ds_length))
     nsd_all = np.zeros((NUM_CHANNELS, ds_length))
-
-    # Make a new folder to store the output images
-    try:
-        os.mkdir(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0]))
-    except:
-        print("Output directory already exists")
 
     for j, (data, lab) in enumerate(test_loader):
         print("Evaluating test image {}".format(j))

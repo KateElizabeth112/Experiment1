@@ -10,9 +10,9 @@ OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 
 
 def main():
-    models = ["unet_v2_1",  "unet_v2_3", "unet_v2_4"]
-    names = ["random, (50, 99.5)",  "weighted, (50, 99.5)", "weighted (2.5, 99.5)"]
-    colors = ["#ffa07a", "#008b45", "#ed90e1"]
+    models = ["nnunet", "unet_v2_1",  "unet_v2_3", "unet_v2_4", "unet_v2_5"]
+    names = ["nnunet", "random, (50, 99.5)",  "weighted, (50, 99.5)", "weighted (2.5, 99.5)", "random (2.5, 99.5)"]
+    colors = ["#ffa07a", "#008b45", "#ed90e1", "#00ced1", "#fa8072", "#15f4ee"]
 
     plt.clf()
 
@@ -30,7 +30,7 @@ def main():
         plt.scatter(np.mean(res), j+1, marker='x', color='k', s=80)
 
     plt.xlabel("Dice Score")
-    plt.yticks([1, 2, 3], names)
+    plt.yticks(range(1, j+2), names)
     plt.ylim([0, j+2])
     plt.legend()
     plt.tight_layout()
