@@ -1,4 +1,5 @@
 # File to contain dataset class
+import copy
 import os
 import nibabel as nib
 import numpy as np
@@ -6,6 +7,7 @@ import pickle as pkl
 import torch
 import torchio as tio
 import SimpleITK as sitk
+import matplotlib.pyplot as plt
 
 from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import DataLoader
@@ -22,6 +24,65 @@ class AddGaussianNoise(object):
         noisy_image = data + np.random.normal(loc=0.0, scale=self.sigma, size=data.shape)
 
         return noisy_image
+
+
+def sample():
+    # Assign probabilities to sampling centre pixel from background or foreground
+
+    # Choose whether we sample foreground or background at centre
+
+    # Choose the relevant part of the label map, convert to verticies and crop so that patch is within image limits (check this will work for pancreas)
+
+    # Convert the verticies to list and randomly sample to get the central verticies of the patch
+
+    # Crop the patch from the image and label
+    print("Hello")
+
+
+def clipAndNormalise(image, mu, sigma, percentiles):
+    """
+    For preparing CT data. First images are clipped between the 50 and 99.5 percentiles of foreground voxel values.
+    Then, images are z-normed using global mean and standard deviation values
+    :return:
+    """
+    # First clip
+    CLIP = True
+    if CLIP:
+        img_raw_clipped = copy.deepcopy(image)
+        img_raw_clipped[image < percentiles[0]] = percentiles[0]
+        img_raw_clipped[image > percentiles[1]] = percentiles[1]
+    else:
+        img_raw_clipped = copy.deepcopy(image)
+
+    # Then normalise
+    img_raw_normed = (img_raw_clipped - mu) / sigma
+
+    if True:
+        plt.clf()
+        plt.subplot(1, 3, 2)
+        plt.imshow(img_raw_clipped[:, :, 0], cmap='gray')
+        plt.title("Clipped")
+        plt.subplot(1, 3, 3)
+        plt.imshow(img_raw_normed[:, :, 0], cmap='gray')
+        plt.title("Normed")
+        plt.subplot(1, 3, 1)
+        plt.imshow(image[:, :, 0], cmap='gray')
+        plt.title("Original")
+        plt.show()
+
+        plt.clf()
+        plt.subplot(1, 3, 2)
+        plt.hist(img_raw_clipped.flatten())
+        plt.title("Clipped")
+        plt.subplot(1, 3, 3)
+        plt.hist(img_raw_normed.flatten())
+        plt.title("Normed")
+        plt.subplot(1, 3, 1)
+        plt.hist(image.flatten())
+        plt.title("Original")
+        plt.show()
+
+    return img_raw_normed
 
 
 def create_elastic_deformation(image_shape, num_controlpoints, sigma):
@@ -143,6 +204,9 @@ class MSDPancreas(Dataset):
         # Get the voxel values as a numpy array
         img = np.array(img.get_fdata())
         lab = np.array(lab.get_fdata())
+
+        # Clip and normalise image according to global mean and standard deviation
+        img = clipAndNormalise(img, 75.58018995449481, 68.39769344841305, [-61, 208])
 
         # Expand the label to the number of channels so we can use one-hot encoding
         lab_full = np.zeros((lab.shape[0], lab.shape[1], self.num_channels))

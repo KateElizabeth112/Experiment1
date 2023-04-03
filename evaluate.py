@@ -15,10 +15,10 @@ from display import PlotSliceAndPrediction
 
 
 ROOT_DIR = '/Users/katecevora/Documents/PhD'
-DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/preprocessed')
+DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v2_5.pt"
+MODEL_NAME = "unet_v2_6s.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
 #PATCH_SIZE = 256

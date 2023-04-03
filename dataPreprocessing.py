@@ -59,6 +59,10 @@ def getGlobalMeanAndSTD(path_images, path_labels,  n_samples):
     # get percentiles
     percentiles = np.percentile(np.array(stack), [2.5, 99.5])
 
+    # save values in config file
+
+    print(mu, sigma, percentiles)
+
     return mu, sigma, percentiles
 
 
@@ -88,7 +92,7 @@ def clipAndNormalise(input_path, output_path, mu, sigma, percentiles):
             # Then normalise
             img_raw_normed = (img_raw_clipped - mu) / sigma
 
-            if True:
+            if False:
                 plt.clf()
                 plt.subplot(1, 3, 1)
                 plt.imshow(img_raw_clipped, cmap='gray')
@@ -120,11 +124,11 @@ def main():
                                                  os.path.join(root_dir, "data/MSDPancreas2D/labelsTr/"),
                                                  150)
 
-    clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTs/"),
-                     os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTs/"),
-                     mu,
-                     sigma,
-                     percentiles)
+    #clipAndNormalise(os.path.join(root_dir, "data/MSDPancreas2D/imagesTs/"),
+    #                 os.path.join(root_dir, "data/MSDPancreas2D/preprocessed/imagesTs/"),
+    #                 mu,
+    #                 sigma,
+    #                 percentiles)
 
 
 if __name__ == "__main__":
