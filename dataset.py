@@ -13,6 +13,7 @@ from torch.utils.data.dataset import Dataset
 from torch.utils.data.dataloader import DataLoader
 from torch.utils.data import Subset
 
+SAMPLING_STRATEGY = "weighted"
 
 # CT data has Gaussian distributed noise
 class AddGaussianNoise(object):
@@ -26,17 +27,74 @@ class AddGaussianNoise(object):
         return noisy_image
 
 
-def sample():
-    # Assign probabilities to sampling centre pixel from background or foreground
+def samplePatchWeighted(image, label, probs, patch_size):
+    """
+    Function to sample a patch from an image with specified probabilities
+    :param image: the raw image.
+    :param label: the label map for the image.
+    :param probs: the probability with which we will sample this class as a list. Length must match number of classes.
+    :param patch_size: The size of the patch which will be sampled.
+    :return:
+    """
 
-    # Choose whether we sample foreground or background at centre
+    # Check that the probabilities list matches the number of classes.
+    if not(np.unique(label).shape[0] == len(probs)):
+        raise(Exception("The length of the probabilites list does not match the number of label classes"))
 
-    # Choose the relevant part of the label map, convert to verticies and crop so that patch is within image limits (check this will work for pancreas)
+    if not(np.sum(np.array(probs)) == 1):
+        raise(Exception("The probabilities provided do not sum to 1."))
 
-    # Convert the verticies to list and randomly sample to get the central verticies of the patch
+    # Choose which class will be at the centre of the patch using the probabilities list
+    c = np.argmax(np.random.multinomial(1, probs))
+
+    # Choose the relevant part of the label map, convert to verticies and crop so that patch is within image limits
+    # TODO (check this will work for pancreas)
+    verts = np.nonzero(label[c, :, :] == c)
+
+    cx = verts[:, 0]
+    cy = verts[:, 1]
+
+    vert_min = int(np.ceil(patch_size / 2))
+    vert_max = image.shape[1] - int(np.floor(patch_size / 2))
+
+    cx_cropped = cx[(cx > vert_min)]
+    cx_cropped = cx[(cx < vert_max)]
+    cy_cropped = cy[(cy > vert_min)]
+    cy_cropped = cy[(cy < vert_max)]
+
+    # Randomly sample to get the central verticies of the patch
+    x = int(np.random.choice(cx_cropped, size=1))
+    y = int(np.random.choice(cy_cropped, size=1))
 
     # Crop the patch from the image and label
-    print("Hello")
+    delta = int(np.floor(patch_size / 2))
+    image_cropped = image[:, x-delta:x+delta, y-delta:y+delta]
+    label_cropped = label[:, x-delta:x+delta, y-delta:y+delta]
+
+    return image_cropped, label_cropped
+
+
+def samplePatchRandom(image, label, patch_size):
+    """
+    Randomly sample a patch from an image and return cropped label and patch/
+    :param image:
+    :param label:
+    :return:
+    """
+    img_size = image.shape
+
+    maxW = img_size[2] - patch_size
+    maxH = img_size[1] - patch_size
+
+    # randomly select patch origin
+    xO = np.random.randint(0, maxH)
+    yO = np.random.randint(0, maxW)
+
+    # Select patch
+    image_patch = image[:, xO:xO + patch_size, yO:yO + patch_size]
+    label_patch = label[:, xO:xO + patch_size, yO:yO + patch_size]
+
+    return image_patch, label_patch
 
 
 def clipAndNormalise(image, mu, sigma, percentiles):
@@ -57,7 +115,7 @@ def clipAndNormalise(image, mu, sigma, percentiles):
     # Then normalise
     img_raw_normed = (img_raw_clipped - mu) / sigma
 
-    if True:
+    if False:
         plt.clf()
         plt.subplot(1, 3, 2)
         plt.imshow(img_raw_clipped[:, :, 0], cmap='gray')
@@ -219,19 +277,18 @@ class MSDPancreas(Dataset):
         img = torch.tensor(np.swapaxes(img, 0, 2)).double()
         lab_full = torch.tensor(np.swapaxes(lab_full, 0, 2)).double()
 
-        # Randomly crop if we are using patch size < 512
-        img_size = img.shape
-        if self.patch_size < img_size[2]:
-            maxW = img_size[2] - self.patch_size
-            maxH = img_size[1] - self.patch_size
+        # Select sampling strategy
+        if self.patch_size < img.shape[1]:
+            if SAMPLING_STRATEGY == "weighted":
+                img, lab_full = samplePatchWeighted(img, lab_full, [0.3, 0.7], self.patch_size)
+            elif SAMPLING_STRATEGY == "random":
+                img, lab_full = samplePatchRandom(img, lab_full, self.patch_size)
 
-            # randomly select patch origin
-            xO = np.random.randint(0, maxH)
-            yO = np.random.randint(0, maxW)
-
-            # Select patch
-            img = img[:, xO:xO+self.patch_size, yO:yO+self.patch_size]
-            lab_full = lab_full[:, xO:xO+self.patch_size, yO:yO+self.patch_size]
+        # Toggle to display sampled image
+        if False:
+            plt.clf()
+            plt.imshow(img[0, :, :], cmap='gray')
+            plt.show()
 
         # carry out dataset augmentations if the flag has been set
         if self.transform:
