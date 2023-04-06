@@ -99,8 +99,8 @@ def train(train_loader, valid_loader, model_name, patch_size):
                 print("{} Feeding data through network".format(dt.fromtimestamp(dt.now().timestamp())))
 
             optimizer.zero_grad()
-            data = data.to(device)
-            label = label.to(device)
+            data = data.to(device).double()
+            label = label.to(device).double()
             pred = net(data)
 
             if i % 10 == 0:
