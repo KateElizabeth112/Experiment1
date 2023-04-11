@@ -141,8 +141,8 @@ def train(train_loader, valid_loader, model_name, patch_size):
         print("{}: Running evaluation.....".format(dt.fromtimestamp(dt.now().timestamp())))
         net.eval()
         for i, (data, label) in enumerate(valid_loader):
-            data = data.to(device)
-            label = label.to(device)
+            data = data.to(device).double()
+            label = label.to(device).double()
             pred = net(data)
 
             # calculate validation loss
