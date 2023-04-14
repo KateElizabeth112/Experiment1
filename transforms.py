@@ -147,21 +147,90 @@ def augmentImage(image, label):
     :param label:
     :return:
     """
-    affine_transform = tio.RandomAffine(scales=(0.7, 1.4),
-                                        degrees=(-180, 180),
-                                        isotropic=True,
-                                        label_keys="label",
-                                        include=["image", "label"],
-                                        p=0.2)
 
-    # Expad the image and label to have four dimensions
+    # Expand the image and label to have four dimensions
     image = image.unsqueeze(0)
     label = label.unsqueeze(0)
 
     # Create a dictionary to feed to transform
     subject = {"image": image, "label": label}
 
+    # AFFINE TRANSFORMATION
+    affine_transform = tio.RandomAffine(scales=(0.7, 1.4),
+                                        degrees=(-180, 180),
+                                        isotropic=True,
+                                        label_keys="label",
+                                        include=["image", "label"],
+                                        p=0.2)
     transformed_subject = affine_transform(subject)
+
+    # GAUSSIAN NOISE
+    noise = tio.RandomNoise(p=0.15, std=(0, 0.1), include=["image"])
+    transformed_subject = noise(transformed_subject)
+
+    # GAUSSIAN BLUR (width of kernel is in mm)
+    blur = tio.RandomBlur(p=0.1, std=(1.25, 3.75), include=["image"])
+    transformed_subject = blur(transformed_subject)
+
+    # BRIGHTNESS MODIFICATION
+    n = np.random.uniform()
+    if n < 0.15:
+        # Randomly select the brightness multiplier
+        m = np.random.uniform(0.7, 1.3)
+        min = torch.min(transformed_subject["image"]).detach().numpy()
+        max = torch.max(transformed_subject["image"]).detach().numpy()
+
+        scale = tio.RescaleIntensity(out_min_max=(m * min, m * max), include=["image"])
+        transformed_subject = scale(transformed_subject)
+
+    # CONTRAST MODIFICATION
+    n = np.random.uniform()
+    if n < 0.15:
+        # Randomly select the brightness multiplier
+        m = np.random.uniform(0.7, 1.3)
+        min = torch.min(transformed_subject["image"])
+        max = torch.max(transformed_subject["image"])
+
+        scale = tio.RescaleIntensity(out_min_max=(m * min.detach().numpy(), m * max.detach().numpy()), include=["image"])
+        transformed_subject = scale(transformed_subject)
+
+        # Clip back to original value range
+        clamp = tio.Clamp(out_min=min, out_max=max, include=["image"])
+        transformed_subject = clamp(transformed_subject)
+
+    # LOW-RES SIMULATION
+    n = np.random.uniform()
+    if n < 0.125:
+        # first downsample, then upsample
+        downsample = tio.Resize(target_shape=(256, 256, 1), include=["image", "label"])
+        upsample = tio.Resize(target_shape=(512, 512, 1), include=["image", "label"])
+
+        transformed_subject = downsample(transformed_subject)
+        transformed_subject = upsample(transformed_subject)
+
+
+    # GAMMA AUGMENTATION
+    n = np.random.uniform()
+    if n < 0.15:
+        # need to scale intensities to range [0,1] first, and then back after transform
+        # find initial min/max
+        min = np.min(transformed_subject["image"].detach().numpy())
+        max = np.max(transformed_subject["image"].detach().numpy())
+
+        # set up operations
+        scalePre = tio.RescaleIntensity(out_min_max=(0, 1), include=["image"])
+        gamma = tio.RandomGamma(p=1, log_gamma=(0.7, 1.5), include=["image"])
+        scalePost = tio.RescaleIntensity(out_min_max=(min, max), include=["image"])
+
+        # Apply to sample
+        transformed_subject = scalePre(transformed_subject)
+        transformed_subject = gamma(transformed_subject)
+        transformed_subject = scalePost(transformed_subject)
+
+    # MIRRORING (RANDOM FLIP)
+    flip = tio.RandomFlip(axes=(0, 1), flip_probability=0.5, include=["image", "label"])
+    transformed_subject = flip(transformed_subject)
+
     transformed_img = transformed_subject["image"]
     transformed_lab = transformed_subject["label"]
 
@@ -173,12 +242,6 @@ def augmentImage(image, label):
 
 
 def main():
-    affine_transform = tio.RandomAffine(scales=(0.7, 1.4),
-                                        degrees=(-180, 180),
-                                        isotropic=True,
-                                        label_keys="label",
-                                        include=["image", "label"],
-                                        p=0.2)
 
     # load an image from the train set
     root_dir = '/Users/katecevora/Documents/PhD'
@@ -196,29 +259,21 @@ def main():
     lab = np.array(lab.get_fdata())
     lab_tensor = torch.tensor(lab).double()
 
-    # Add an extra channel (C, H, W, D)
-    img_tensor = img_tensor.unsqueeze(0)
-    lab_tensor = lab_tensor.unsqueeze(0)
-
-    # Create a dictionary to feed to transform
-    subject = {"image": img_tensor, "label": lab_tensor}
-
-    for i in range(5):
-        transformed_subject = affine_transform(subject)
-        transformed_img = transformed_subject["image"]
-        transformed_lab = transformed_subject["label"]
+    for i in range(1000):
+        transformed_img, transformed_lab = augmentImage(img_tensor, lab_tensor)
 
         # plot both
-        plt.clf()
-        plt.subplot(2, 2, 1)
-        plt.imshow(img_tensor[0, :, :, 0], cmap='gray')
-        plt.subplot(2, 2, 2)
-        plt.imshow(transformed_img[0, :, :, 0], cmap='gray')
-        plt.subplot(2, 2, 3)
-        plt.imshow(lab_tensor[0, :, :, 0], cmap="jet")
-        plt.subplot(2, 2, 4)
-        plt.imshow(transformed_lab[0, :, :, 0], cmap="jet")
-        plt.show()
+        if True:
+            plt.clf()
+            plt.subplot(2, 2, 1)
+            plt.imshow(img_tensor[:, :, 0], cmap='gray')
+            plt.subplot(2, 2, 2)
+            plt.imshow(transformed_img[:, :, 0], cmap='gray')
+            plt.subplot(2, 2, 3)
+            plt.imshow(lab_tensor[:, :, 0], cmap="jet")
+            plt.subplot(2, 2, 4)
+            plt.imshow(transformed_lab[:, :, 0], cmap="jet")
+            plt.show()
 
 
 if __name__ == "__main__":

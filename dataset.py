@@ -58,14 +58,15 @@ class MSDPancreas(Dataset):
         lab = np.array(lab.get_fdata())
 
         # Clip and normalise image according to global mean and standard deviation
-        img = clipAndNormalise(img, 75.58018995449481, 68.39769344841305, [-61, 208])
+        img = clipAndNormalise(img, 75.58018995449481, 68.39769344841305, [-96, 215])
 
         # Create tensors
         img = torch.tensor(img).double()
         lab = torch.tensor(lab).double()
 
         # Apply transforms
-        img, lab = augmentImage(img, lab)
+        if self.train:
+            img, lab = augmentImage(img, lab)
 
         # Expand the label to the number of channels so we can use one-hot encoding
         lab_full = np.zeros((lab.shape[0], lab.shape[1], self.num_channels))

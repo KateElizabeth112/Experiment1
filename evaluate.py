@@ -18,11 +18,11 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v2_6s.pt"
+MODEL_NAME = "unet_v2_8.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
 #PATCH_SIZE = 256
-PATCH_OVERLAP = 4
+PATCH_OVERLAP = 128
 
 organs_dict = {0: "background",
                1: "pancreas",
@@ -112,7 +112,7 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
             )
 
             patch_loader = torch.utils.data.DataLoader(grid_sampler, batch_size=4)
-            aggregator = tio.inference.GridAggregator(grid_sampler)
+            aggregator = tio.inference.GridAggregator(grid_sampler, overlap_mode='hann')
 
             with torch.no_grad():
                 for patches_batch in patch_loader:
