@@ -29,9 +29,16 @@ class UNet(nn.Module):
         self.dconv_down4 = double_conv(128, 256)
         self.dconv_down5 = double_conv(256, 512)
 
+        # Extra layers to match nnUNet (only one extra layer as min feature map size is 4
+        self.dconv_down6 = double_conv(512, 512)
+        self.dconv_down7 = double_conv(512, 512)
+
         self.maxpool = nn.MaxPool2d(2)
         self.upsample = nn.Upsample(scale_factor=2, mode='bilinear')
         self.dropout = nn.Dropout2d(0.5)
+
+        self.dconv_up6 = double_conv(512 + 512, 512)
+        self.dconv_up5 = double_conv(512 + 512, 512)
         self.dconv_up4 = double_conv(256 + 512, 256)
         self.dconv_up3 = double_conv(128 + 256, 128)
         self.dconv_up2 = double_conv(128 + 64, 64)
@@ -63,8 +70,14 @@ class UNet(nn.Module):
         x = self.maxpool(conv4)
 
         # Size is 32
+        conv5 = self.dconv_down5(x)
+        conv5 = self.dropout(conv5)
+        x = self.maxpool(conv5)
 
         # Size is 16
+        conv6 = self.dconv_down6(x)
+        conv6 = self.dropout(conv6)
+        x = self.maxpool(conv6)
 
         # Size is 8
 
@@ -72,12 +85,22 @@ class UNet(nn.Module):
 
         ######  MID-SECTION ######
 
-        conv5 = self.dconv_down5(x)
-        conv5 = self.dropout(conv5)
+        conv7 = self.dconv_down7(x)
+        conv7 = self.dropout(conv7)
 
         ######  DECODER     ######
 
-        deconv4 = self.upsample(conv5)
+        deconv6 = self.upsample(conv7)
+        deconv6 = torch.cat([deconv6, conv6], dim=1)
+        deconv6 = self.dconv_up6(deconv6)
+        deconv6 = self.dropout(deconv6)
+
+        deconv5 = self.upsample(deconv6)
+        deconv5 = torch.cat([deconv5, conv5], dim=1)
+        deconv5 = self.dconv_up5(deconv5)
+        deconv5 = self.dropout(deconv5)
+
+        deconv4 = self.upsample(deconv5)
         deconv4 = torch.cat([deconv4, conv4], dim=1)
         deconv4 = self.dconv_up4(deconv4)
         deconv4 = self.dropout(deconv4)
