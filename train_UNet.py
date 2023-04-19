@@ -107,7 +107,7 @@ def train(train_loader, valid_loader, model_name, patch_size):
                 print("{} Calculating losses".format(dt.fromtimestamp(dt.now().timestamp())))
 
             # calculate loss
-            L_dc = - dice_coeff(pred, label)
+            L_dc = - dice_coeff(pred[:, 1, :, :], label[:, 1, :, :])
             L_ce = loss_BCE(pred, label)
             err = L_dc + L_ce
 

@@ -11,7 +11,7 @@
 source /vol/biomedic3/kc2322/code/Experiment1/env/bin/activate
 
 # Run python script
-python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -m "unet_v4_1" -b 6 -n 75 -s True -f 0 -p 256
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -m "unet_v5_0" -b 6 -n 50 -s True -f 0 -p 256
 
 #python3 main.py -m "unet_v5_1" -b 6 -n 100 -s True -f 1
 
