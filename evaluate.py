@@ -18,7 +18,7 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v4_1.pt"
+MODEL_NAME = "unet_v5_0.pt"
 FOLD = "0"
 NUM_CHANNELS = 2
 PATCH_OVERLAP = 128
@@ -230,7 +230,7 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
 
             # Fill Dice and NSD array
             dice_all[:, j] = dice
-
+            """
             try:
                 visualiseLatent(latent_full, lab, dice, save_path=os.path.join(OUTPUT_DIR,
                                                                              "latent_tsne",
@@ -238,6 +238,7 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
 
             except:
                 continue
+                """
 
     # Save results
     f = open(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0], "results.pkl"), 'wb')

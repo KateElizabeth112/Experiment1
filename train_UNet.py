@@ -147,7 +147,7 @@ def train(train_loader, valid_loader, model_name, patch_size):
 
             # calculate validation loss
             dice_per_class = get_dice_per_class(pred, label)
-            L_dc = - dice_coeff(pred, label)
+            L_dc = - dice_coeff(pred[:, 1, :, :], label[:, 1, :, :])
             L_ce = loss_BCE(pred, label)
             err = L_dc + L_ce
 

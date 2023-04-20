@@ -173,8 +173,8 @@ def augmentImage(image, label):
     # Create a dictionary to feed to transform
     subject = {"image": image, "label": label}
 
-    augmentation_list = ['affine', 'gaussian_noise', "gaussian_blur", "brightness", "contrast", "low-res", "gamma", "flip"]
-    #augmentation_list = ["affine"]
+    #augmentation_list = ['affine', 'gaussian_noise', "gaussian_blur", "brightness", "contrast", "low-res", "gamma", "flip"]
+    augmentation_list = ["affine"]
 
     # AFFINE TRANSFORMATION
     if 'affine' in augmentation_list:
