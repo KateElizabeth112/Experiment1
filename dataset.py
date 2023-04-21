@@ -19,7 +19,7 @@ SAMPLING_STRATEGY = "random"
 
 
 class MSDPancreas(Dataset):
-    def __init__(self, root_dir, num_channels, patch_size, train=True, transform=None):
+    def __init__(self, root_dir, num_channels, patch_size, train=True, transform=[]):
         '''
           root_dir - string - path towards the folder containg the data
         '''
@@ -66,7 +66,7 @@ class MSDPancreas(Dataset):
 
         # Apply transforms
         if self.train:
-            img, lab = augmentImage(img, lab)
+            img, lab = augmentImage(img, lab, self.transform)
 
         # Expand the label to the number of channels so we can use one-hot encoding
         lab_full = np.zeros((lab.shape[0], lab.shape[1], self.num_channels))
@@ -96,7 +96,7 @@ class MSDPancreas(Dataset):
         return img, lab_full
 
 
-def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size):
+def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size, augmentations):
     # Create train and test datasets
 
     # load folds
@@ -105,7 +105,7 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size
     f.close()
 
     # create a dataset
-    dataset = MSDPancreas(root_dir=data_dir, num_channels=2, patch_size=patch_size, train=True)
+    dataset = MSDPancreas(root_dir=data_dir, num_channels=2, patch_size=patch_size, train=True, transform=augmentations)
 
     # create train and test datasets
     train_dataset = Subset(dataset, train_indices[fold].astype('int'))

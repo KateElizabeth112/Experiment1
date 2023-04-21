@@ -15,25 +15,13 @@ from UNet import UNet
 # argparse
 parser = argparse.ArgumentParser(description="Just an example",
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument("-b", "--batch_size", default=2, help="Size of UNet training batch.")
-parser.add_argument("-n", "--num_epochs", default=10, help="Number of training epochs.")
-parser.add_argument("-m", "--model_name", default="unet", help="Name of the model to be saved")
-parser.add_argument("-s", "--slurm", default=False, help="Running on SLURM")
-parser.add_argument("-f", "--fold", default=0, help="Fold for cross-validation")
-parser.add_argument("-p", "--patch_size", default=256, help="Specify patch size for training")
+parser.add_argument("-c", "--config_file", default="unet_v5_2_config.pkl", help="Configuration file for training")
+parser.add_argument("-s", "--slurm", default=False, help="Running on SLURM?")
 args = vars(parser.parse_args())
 
 # set up variables
-NUM_CONV_LAYERS = 7
-PATCH_SIZE = int(args["patch_size"])
-BATCH_SIZE = int(args['batch_size'])
-NUM_WORKERS = 2
-NUM_EPOCHS = int(args['num_epochs'])
-INIT_LEARNING_RATE = 3e-4
-TRAIN_PROP = 0.8
-MODEL_NAME = args['model_name']
+CONFIG_FILE = args["config_file"]
 SLURM = args['slurm']
-FOLD = int(args['fold'])
 
 # set flag to time operations
 TIME = True
@@ -41,8 +29,10 @@ TIME = True
 # Set up directories and filenames
 if SLURM:
     root_dir = '/vol/biomedic3/kc2322/'
+    code_dir = '/vol/biomedic3/kc2322/code/Experiment1/Experiment1'
 else:
     root_dir = '/Users/katecevora/Documents/PhD'
+    code_dir = '/Users/katecevora/Documents/PhD/code/Experiment1'
 
 data_dir = os.path.join(root_dir, 'data/MSDPancreas2D/')
 images_dir = os.path.join(data_dir, "imagesTr")
@@ -57,15 +47,15 @@ else:
     device = torch.device('cpu')
 
 
-def train(train_loader, valid_loader, model_name, patch_size):
+def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_lr, num_epochs):
     print("\n{}: Starting training.".format(dt.fromtimestamp(dt.now().timestamp())))
     start_time = dt.now()
 
     print("Saving model config at: {}".format(os.path.join(save_path, '{}_config.pkl'.format(model_name))))
-    config_dict = {"patch_size": PATCH_SIZE,
-                   "batch_size": BATCH_SIZE}
+    setup_dict = {"patch_size": patch_size,
+                   "batch_size": batch_size}
     f = open(os.path.join(save_path, '{}_config.pkl'.format(model_name)), 'wb')
-    pkl.dump(config_dict, f)
+    pkl.dump(setup_dict, f)
     f.close()
 
     av_train_error = []
@@ -75,12 +65,11 @@ def train(train_loader, valid_loader, model_name, patch_size):
     eps = []
 
     net = UNet(inChannels=1, outChannels=2, imgSize=patch_size).to(device).double()
-    optimizer = torch.optim.Adam(net.parameters(), lr=3e-4, betas=(0.5, 0.999))
+    optimizer = torch.optim.Adam(net.parameters(), lr=init_lr, betas=(0.5, 0.999))
     optimizer.zero_grad()
     loss_BCE = nn.BCELoss()
-    #save_path = os.path.join(root_dir, "models")
 
-    for epoch in range(NUM_EPOCHS):
+    for epoch in range(num_epochs):
         ##########
         # Train
         ##########
@@ -193,6 +182,28 @@ def main():
     else:
         device = torch.device('cpu')
 
+
+    # Try to load the configuration file specified
+    try:
+        f = open(os.path.join(code_dir, "config", CONFIG_FILE), 'rb')
+        config_dict = pkl.load(f)
+        f.close()
+    except:
+        print("Config file {} cannot be found".format(CONFIG_FILE))
+
+    PATCH_SIZE = config_dict["patch_size"]
+    if SLURM:
+        BATCH_SIZE = config_dict['batch_size']
+    else:
+        BATCH_SIZE = 2
+    NUM_WORKERS = config_dict["num_workers"]
+    NUM_EPOCHS = config_dict['num_epochs']
+    INIT_LEARNING_RATE = config_dict["init_lr"]
+    TRAIN_PROP = config_dict["train_prop"]
+    MODEL_NAME = config_dict["model_name"]
+    FOLD = config_dict["fold"]
+    AUGMENTATIONS = config_dict["augmentations"]
+
     print("Configuration:")
     print("Device: ", device)
     print("SLURM: {}".format(SLURM))
@@ -202,11 +213,12 @@ def main():
     print("Batch size: {}".format(BATCH_SIZE))
     print("Fold: {}".format(FOLD))
     print("Number of epochs: {}".format(NUM_EPOCHS))
+    print("Augmentations: {}".format(AUGMENTATIONS))
 
-    train_loader, valid_loader = create_dataset(root_dir, data_dir, FOLD, BATCH_SIZE, NUM_WORKERS, PATCH_SIZE)
+    train_loader, valid_loader = create_dataset(root_dir, data_dir, FOLD, BATCH_SIZE, NUM_WORKERS, PATCH_SIZE, AUGMENTATIONS)
 
     # Train the network
-    train(train_loader, valid_loader, MODEL_NAME, PATCH_SIZE)
+    train(train_loader, valid_loader, MODEL_NAME, PATCH_SIZE, BATCH_SIZE, INIT_LEARNING_RATE, NUM_EPOCHS)
 
 
 

@@ -158,7 +158,7 @@ def randomFlip(subject, probability=0.5):
     return subject
 
 
-def augmentImage(image, label):
+def augmentImage(image, label, augmentation_list):
     """
     Image and label should have 4 dimensions each (C, H, W, D)
     :param image:
@@ -174,7 +174,6 @@ def augmentImage(image, label):
     subject = {"image": image, "label": label}
 
     #augmentation_list = ['affine', 'gaussian_noise', "gaussian_blur", "brightness", "contrast", "low-res", "gamma", "flip"]
-    augmentation_list = ["affine"]
 
     # AFFINE TRANSFORMATION
     if 'affine' in augmentation_list:
