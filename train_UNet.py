@@ -90,7 +90,7 @@ def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_l
             optimizer.zero_grad()
             data = data.to(device).double()
             label = label.to(device).double()
-            pred = net(data)
+            pred, _ = net(data)
 
             if i % 10 == 0:
                 print("{} Calculating losses".format(dt.fromtimestamp(dt.now().timestamp())))
@@ -132,7 +132,7 @@ def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_l
         for i, (data, label) in enumerate(valid_loader):
             data = data.to(device).double()
             label = label.to(device).double()
-            pred = net(data)
+            pred, _ = net(data)
 
             # calculate validation loss
             dice_per_class = get_dice_per_class(pred, label)

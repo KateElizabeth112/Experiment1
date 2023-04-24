@@ -11,7 +11,7 @@
 source /vol/biomedic3/kc2322/code/Experiment1/env/bin/activate
 
 # Run python script
-python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v5_3_config.pkl" -s True
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v5_4_config.pkl" -s True
 
 #python3 main.py -m "unet_v5_1" -b 6 -n 100 -s True -f 1
 

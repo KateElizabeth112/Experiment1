@@ -123,4 +123,4 @@ class UNet(nn.Module):
         out = self.conv_last(deconv1)
         out_probs = self.softmax(out)
 
-        return out_probs
+        return out_probs, deconv1
