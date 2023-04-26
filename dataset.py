@@ -96,7 +96,7 @@ class MSDPancreas(Dataset):
         return img, lab_full
 
 
-def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size, augmentations):
+def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size, augmentations, num_classes):
     # Create train and test datasets
 
     # load folds
@@ -105,7 +105,7 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size
     f.close()
 
     # create a dataset
-    dataset = MSDPancreas(root_dir=data_dir, num_channels=2, patch_size=patch_size, train=True, transform=augmentations)
+    dataset = MSDPancreas(root_dir=data_dir, num_channels=num_classes, patch_size=patch_size, train=True, transform=augmentations)
 
     # create train and test datasets
     train_dataset = Subset(dataset, train_indices[fold].astype('int'))
@@ -134,9 +134,9 @@ def create_dataset(root_dir, data_dir, fold, batch_size, num_workers, patch_size
     return train_loader, valid_loader
 
 
-def create_test_dataset(data_dir):
+def create_test_dataset(data_dir, num_channels):
     # create just a test dataset
-    test_dataset = MSDPancreas(root_dir=data_dir, num_channels=2, train=False, patch_size=512)
+    test_dataset = MSDPancreas(root_dir=data_dir, num_channels=num_channels, train=False, patch_size=512)
 
     ds_length = test_dataset.__len__()
 

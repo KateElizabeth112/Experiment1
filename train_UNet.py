@@ -19,7 +19,7 @@ parser.add_argument("-c", "--config_file", default="unet_v5_2_config.pkl", help=
 parser.add_argument("-s", "--slurm", default=False, help="Running on SLURM?")
 args = vars(parser.parse_args())
 
-# set up variables
+# set up global variables
 CONFIG_FILE = args["config_file"]
 SLURM = args['slurm']
 
@@ -47,7 +47,7 @@ else:
     device = torch.device('cpu')
 
 
-def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_lr, num_epochs):
+def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_lr, num_epochs, num_classes):
     print("\n{}: Starting training.".format(dt.fromtimestamp(dt.now().timestamp())))
     start_time = dt.now()
 
@@ -64,7 +64,7 @@ def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_l
     av_valid_dice = []
     eps = []
 
-    net = UNet(inChannels=1, outChannels=2, imgSize=patch_size).to(device).double()
+    net = UNet(inChannels=1, outChannels=num_classes, imgSize=patch_size).to(device).double()
     optimizer = torch.optim.Adam(net.parameters(), lr=init_lr, betas=(0.5, 0.999))
     optimizer.zero_grad()
     loss_BCE = nn.BCELoss()
@@ -96,7 +96,7 @@ def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_l
                 print("{} Calculating losses".format(dt.fromtimestamp(dt.now().timestamp())))
 
             # calculate loss
-            L_dc = - dice_coeff(pred[:, 1, :, :], label[:, 1, :, :])
+            L_dc = - dice_coeff(pred[:, 1:, :, :], label[:, 1:, :, :])
             L_ce = loss_BCE(pred, label)
             err = L_dc + L_ce
 
@@ -136,7 +136,7 @@ def train(train_loader, valid_loader, model_name, patch_size, batch_size, init_l
 
             # calculate validation loss
             dice_per_class = get_dice_per_class(pred, label)
-            L_dc = - dice_coeff(pred[:, 1, :, :], label[:, 1, :, :])
+            L_dc = - dice_coeff(pred[:, 1:, :, :], label[:, 1:, :, :])
             L_ce = loss_BCE(pred, label)
             err = L_dc + L_ce
 
@@ -203,6 +203,7 @@ def main():
     MODEL_NAME = config_dict["model_name"]
     FOLD = config_dict["fold"]
     AUGMENTATIONS = config_dict["augmentations"]
+    NUM_CLASSES = 3
 
     print("Configuration:")
     print("Device: ", device)
@@ -215,10 +216,10 @@ def main():
     print("Number of epochs: {}".format(NUM_EPOCHS))
     print("Augmentations: {}".format(AUGMENTATIONS))
 
-    train_loader, valid_loader = create_dataset(root_dir, data_dir, FOLD, BATCH_SIZE, NUM_WORKERS, PATCH_SIZE, AUGMENTATIONS)
+    train_loader, valid_loader = create_dataset(root_dir, data_dir, FOLD, BATCH_SIZE, NUM_WORKERS, PATCH_SIZE, AUGMENTATIONS, NUM_CLASSES)
 
     # Train the network
-    train(train_loader, valid_loader, MODEL_NAME, PATCH_SIZE, BATCH_SIZE, INIT_LEARNING_RATE, NUM_EPOCHS)
+    train(train_loader, valid_loader, MODEL_NAME, PATCH_SIZE, BATCH_SIZE, INIT_LEARNING_RATE, NUM_EPOCHS, NUM_CLASSES)
 
 
 
