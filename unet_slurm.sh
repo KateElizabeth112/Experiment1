@@ -11,12 +11,18 @@
 source /vol/biomedic3/kc2322/code/Experiment1/env/bin/activate
 
 # Run python script
-python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_0_config.pkl" -s True
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_1_config.pkl" -s True
 
-#python3 main.py -m "unet_v5_1" -b 6 -n 100 -s True -f 1
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_2_config.pkl" -s True
 
-#python3 main.py -m "unet_v5_2" -b 6 -n 100 -s True -f 2
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_3_config.pkl" -s True
 
-#python3 main.py -m "unet_v5_3" -b 6 -n 100 -s True -f 3
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_4_config.pkl" -s True
 
-#python3 main.py -m "unet_v5_4" -b 6 -n 100 -s True -f 4
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_5_config.pkl" -s True
+
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_6_config.pkl" -s True
+
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_7_config.pkl" -s True
+
+python3 /vol/biomedic3/kc2322/code/Experiment1/Experiment1/train_UNet.py -c "unet_v6_8_config.pkl" -s True

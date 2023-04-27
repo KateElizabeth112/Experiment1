@@ -18,9 +18,9 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v6_0.pt"
+MODEL_NAME = "unet_v5_3.pt"
 FOLD = "0"
-NUM_CHANNELS = 3
+NUM_CHANNELS = 2
 PATCH_OVERLAP = 128
 
 organs_dict = {0: "background",
@@ -182,18 +182,15 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
                     logits = torch.unsqueeze(logits, dim=2)
                     latent = torch.unsqueeze(latent, dim=2)
 
-                    # convert the logits to labels
-                    labels = logits.argmax(dim=tio.CHANNELS_DIMENSION, keepdim=True)
-                    outputs = labels
-                    aggregator.add_batch(outputs, locations)
-
+                    aggregator.add_batch(logits, locations)
                     aggregator_latent.add_batch(latent, locations)
 
-            output_tensor = aggregator.get_output_tensor()
+            output_logits = aggregator.get_output_tensor()
             latent_full = aggregator_latent.get_output_tensor()
 
             # drop redundant dimensions from output tensor, and one hot encode
-            pred = torch.squeeze(output_tensor)
+            output_logits = torch.squeeze(output_logits)
+            pred = output_logits.argmax(dim=0, keepdim=True).squeeze()
             one_hot = torch.FloatTensor(NUM_CHANNELS, 512, 512)
             one_hot.zero_()
             for i in range(NUM_CHANNELS):
