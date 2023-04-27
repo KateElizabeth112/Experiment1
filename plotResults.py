@@ -10,7 +10,7 @@ OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 
 
 def main():
-    models = ["nnunet", "unet_v2_1",  "unet_v2_3", "unet_v2_5", "unet_v5_0", "unet_v5_1", "unet_v5_3"]
+    models = ["nnunet", "unet_v2_1", "unet_v5_0", "unet_v5_1", "unet_v5_3", "unet_v5_4", "unet_v6_0"]
     names = ["nnunet", "random, (50, 99.5)",  "weighted, (50, 99.5)", "weighted (2.5, 99.5)", "random (2.5, 99.5)", "random, no clip", "random (2.5, 99.5)"]
     colors = ["#ffa07a", "#008b45", "#ed90e1", "#00ced1", "#fa8072", "#15f4ee", "#ffa07a"]
 
