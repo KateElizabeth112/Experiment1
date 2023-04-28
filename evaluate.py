@@ -18,10 +18,12 @@ ROOT_DIR = '/Users/katecevora/Documents/PhD'
 DATA_DIR = os.path.join(ROOT_DIR, 'data/MSDPancreas2D/')
 OUTPUT_DIR = os.path.join(ROOT_DIR, 'images/test')
 MODEL_DIR = os.path.join(ROOT_DIR, "models/MSDPancreas2D")
-MODEL_NAME = "unet_v5_3.pt"
+MODEL_NAME = "unet_v6_0.pt"
 FOLD = "0"
-NUM_CHANNELS = 2
+NUM_CHANNELS = 3
 PATCH_OVERLAP = 128
+
+SAVE_RESULTS = False
 
 organs_dict = {0: "background",
                1: "pancreas",
@@ -116,6 +118,12 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
         os.mkdir(os.path.join(OUTPUT_DIR, MODEL_NAME.split(".")[0]))
     except:
         print("Output directory already exists")
+
+    if SAVE_RESULTS:
+        try:
+            os.mkdir(os.path.join(ROOT_DIR, 'results', MODEL_NAME.split(".")[0]))
+        except:
+            print("Output directory already exists")
 
 
     checkpoint = torch.load(os.path.join(model_path, model_name), map_location=torch.device(device))
@@ -219,6 +227,12 @@ def evaluate(test_loader, model_path, model_name, fold, ds_length):
         pred = np.squeeze(pred)[1, :, :]
         lab = np.squeeze(lab)[1, :, :]
         img = np.squeeze(img)
+
+        # Optionally save predictions
+        if SAVE_RESULTS:
+            f = open(os.path.join(ROOT_DIR, 'results', MODEL_NAME.split(".")[0], '{}.pkl'.format(j)), 'wb')
+            pkl.dump(pred, f)
+            f.close()
 
         if True:
             # Visualise
