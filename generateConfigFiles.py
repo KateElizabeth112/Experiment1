@@ -2,7 +2,7 @@
 import pickle as pkl
 import os
 
-MODEL_NAME = "unet_v6_9"
+MODEL_NAME = "unet_v6_10"
 PATCH_SIZE = 256
 BATCH_SIZE = 10
 NUM_WORKERS = 2
@@ -11,7 +11,7 @@ INIT_LEARNING_RATE = 3e-4
 TRAIN_PROP = 0.8
 FOLD = 0
 # ['affine', 'gaussian_noise', "gaussian_blur", "brightness", "contrast", "low-res", "gamma", "flip"]
-AUGMENTATIONS = []
+AUGMENTATIONS = ['affine', 'gaussian_noise', "gaussian_blur", "brightness", "contrast", "low-res", "gamma", "flip"]
 
 
 def main():
